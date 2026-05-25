@@ -7,6 +7,10 @@ import (
 	"github.com/twelvepills-936/tgapp-/pkg/config"
 )
 
+<<<<<<< HEAD
+=======
+// linksResponse is returned by GET /v1/app/links for the frontend (Support button, etc.).
+>>>>>>> 3489ac71c17ae6e070eec77e5b2b0b383107f257
 type linksResponse struct {
 	SupportChatURL string `json:"support_chat_url"`
 	BotUsername    string `json:"bot_username,omitempty"`
