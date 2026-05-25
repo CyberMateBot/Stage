@@ -1,6 +1,10 @@
 # Кнопка Support
 
-Ссылка: [https://t.me/+jXI2qDR9Y-xkZTI6](https://t.me/+jXI2qDR9Y-xkZTI6)
+Ссылка: [https://t.me/+jXI2qDR9Y-xkZTI6](https://t.me/+jXI2qDR9Y-xkZTI6) (канал **CyberMate | Community**).
+
+**Не** открывать `https://t.me/${BOT_USERNAME}` — это чат с ботом, не support.
+
+Реализация во фронте: `tgapp_front/src/lib/openSupport.js`, кнопка в `App.jsx` → `handleSupportClick`.
 
 ```http
 GET /v1/app/links
