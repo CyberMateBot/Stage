@@ -17,6 +17,7 @@ type Repository interface {
 	// CyberMate repositories
 	CreateProfile(ctx context.Context, tx pgx.Tx, p repoModels.Profile) (int64, error)
 	GetProfileByTelegramID(ctx context.Context, tx pgx.Tx, telegramID string) (repoModels.Profile, error)
+	UpdateProfileTheme(ctx context.Context, tx pgx.Tx, telegramID, theme string) error
 	CreateWalletForUser(ctx context.Context, tx pgx.Tx, profileID int64) (int64, error)
 	AddReferral(ctx context.Context, tx pgx.Tx, referrerProfileID int64, refereeProfileID int64) error
 }
@@ -27,6 +28,7 @@ type UseCase interface {
 	// CyberMate usecases
 	RegisterByTelegram(ctx context.Context, input ucModels.RegisterByTelegramInput) (ucModels.RegisterByTelegramOutput, error)
 	GetUserByTelegramID(ctx context.Context, telegramID string) (ucModels.GetProfileOutput, error)
+	UpdateProfileTheme(ctx context.Context, input ucModels.UpdateProfileThemeInput) (ucModels.UpdateProfileThemeOutput, error)
 }
 
 type Client interface {

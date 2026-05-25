@@ -122,6 +122,10 @@ func (uc *useCase) GetUserByTelegramID(ctx context.Context, telegramID string) (
 		}
 		return ucModels.GetProfileOutput{}, err
 	}
+	theme := p.UITheme
+	if theme == "" {
+		theme = ucModels.ThemeLight
+	}
 	return ucModels.GetProfileOutput{Data: ucModels.ProfileUser{
 		ID:         p.ID,
 		Name:       p.Name,
@@ -129,7 +133,22 @@ func (uc *useCase) GetUserByTelegramID(ctx context.Context, telegramID string) (
 		Avatar:     p.Avatar,
 		Username:   p.Username,
 		Verified:   p.Verified,
+		Theme:      theme,
 	}}, nil
+}
+
+func (uc *useCase) UpdateProfileTheme(ctx context.Context, input ucModels.UpdateProfileThemeInput) (ucModels.UpdateProfileThemeOutput, error) {
+	if err := input.Validate(); err != nil {
+		return ucModels.UpdateProfileThemeOutput{}, err
+	}
+
+	if err := uc.repo.UpdateProfileTheme(ctx, nil, input.TelegramID, input.Theme); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ucModels.UpdateProfileThemeOutput{}, ucModels.ErrProfileNotFound
+		}
+		return ucModels.UpdateProfileThemeOutput{}, err
+	}
+	return ucModels.UpdateProfileThemeOutput{Theme: input.Theme}, nil
 }
 
 // helpers

@@ -81,5 +81,23 @@ func (s *service) GetUserByTelegramId(ctx context.Context, req *api.GetUserByTel
 		Id:      out.Data.ID,
 		Name:    out.Data.Name,
 		Surname: "",
+		Theme:   out.Data.Theme,
 	}}, nil
+}
+
+func (s *service) UpdateProfileTheme(ctx context.Context, req *api.UpdateProfileThemeRequest) (*api.UpdateProfileThemeResponse, error) {
+	out, err := s.uc.UpdateProfileTheme(ctx, ucModels.UpdateProfileThemeInput{
+		TelegramID: req.GetTelegramId(),
+		Theme:      req.GetTheme(),
+	})
+	if err != nil {
+		switch {
+		case errors.Is(err, ucModels.ErrProfileNotFound):
+			return nil, status.Error(codes.NotFound, fmt.Sprintf("%s: %s", errorcodes.ProfileNotFound, ucModels.ErrProfileNotFound.Error()))
+		case errors.Is(err, ucModels.ErrInvalidInput):
+			return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("%s: %s", errorcodes.InvalidArgument, err.Error()))
+		}
+		return nil, status.Error(codes.Internal, fmt.Sprintf("%s: %s", errorcodes.Internal, ucModels.ErrInternalServerError.Error()))
+	}
+	return &api.UpdateProfileThemeResponse{Theme: out.Theme}, nil
 }

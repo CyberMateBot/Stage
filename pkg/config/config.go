@@ -232,7 +232,7 @@ func LoadRedisConfig() ConfigRedis {
 func LoadCORSConfig() ConfigCORS {
 	return ConfigCORS{
 		AllowedOrigins: getenvStringSlice("CORS_ALLOWED_ORIGINS", []string{"http://localhost:3000", "http://localhost:5173"}),
-		AllowedMethods: getenvStringSlice("CORS_ALLOWED_METHODS", []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
+		AllowedMethods: getenvStringSlice("CORS_ALLOWED_METHODS", []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"}),
 		AllowedHeaders: getenvStringSlice("CORS_ALLOWED_HEADERS", []string{"Content-Type", "Authorization"}),
 	}
 }

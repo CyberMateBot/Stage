@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>CyberMate</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <main class="app">
+    <header class="header">
+      <h1 class="title">CyberMate</h1>
+      <p class="subtitle">Настройки отображения</p>
+    </header>
+
+    <section class="card">
+      <h2 class="card-title">Тема</h2>
+      <p class="card-hint">Светлая или тёмная — выбор сохраняется на сервере и в браузере.</p>
+      <div class="theme-switch" role="group" aria-label="Выбор темы">
+        <button type="button" class="theme-btn" data-theme-value="light" id="btn-light">Светлая</button>
+        <button type="button" class="theme-btn" data-theme-value="dark" id="btn-dark">Тёмная</button>
+      </div>
+    </section>
+
+    <p class="status" id="status" aria-live="polite"></p>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>

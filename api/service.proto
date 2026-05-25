@@ -51,6 +51,18 @@ service CyberMate {
       description: "Get user profile by telegram id"
     };
   }
+
+  // Updates UI theme preference (light or dark) for a profile
+  rpc UpdateProfileTheme (UpdateProfileThemeRequest) returns (UpdateProfileThemeResponse) {
+    option (google.api.http) = {
+      patch: "/v1/users/telegram/{telegram_id}/theme"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "UpdateProfileTheme"
+      description: "Update profile UI theme (light or dark)"
+    };
+  }
 }
 
 message GetUserRequest {
@@ -70,6 +82,7 @@ message User {
   int64 id = 1;
   string name = 2;
   string surname = 3;
+  string theme = 4;
 }
 
 // CyberMate messages
@@ -84,4 +97,13 @@ message RegisterByTelegramResponse {
 
 message GetUserByTelegramIdRequest {
   string telegram_id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message UpdateProfileThemeRequest {
+  string telegram_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string theme = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message UpdateProfileThemeResponse {
+  string theme = 1;
 }

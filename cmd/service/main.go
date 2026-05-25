@@ -13,6 +13,7 @@ import (
 	"github.com/twelvepills-936/tgapp-/pkg/app"
 	"github.com/twelvepills-936/tgapp-/pkg/config"
 	"github.com/twelvepills-936/tgapp-/pkg/logger"
+	"github.com/twelvepills-936/tgapp-/pkg/cors"
 	"github.com/twelvepills-936/tgapp-/pkg/swagger"
 )
 
@@ -71,7 +72,11 @@ func main() {
 		return
 	}
 
-	application.SetHTTPHandler(swagger.Wrap(application.ServeMux, addConfig.App.SwaggerEnabled))
+	httpHandler := cors.Wrap(
+		swagger.Wrap(application.ServeMux, addConfig.App.SwaggerEnabled),
+		addConfig.CORS,
+	)
+	application.SetHTTPHandler(httpHandler)
 
 	err = application.Run(ctx)
 	if err != nil {
