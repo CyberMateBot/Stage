@@ -26,6 +26,10 @@ type ConfigApp struct {
 	SwaggerEnabled bool
 	APITitle       string
 	APIVersion     string
+
+	// Telegram deep links for Mini App UI (Support button, etc.)
+	SupportTelegramInviteURL string
+	TelegramBotUsername      string
 }
 
 type ConfigServer struct {
@@ -168,6 +172,9 @@ func LoadAppConfig() ConfigApp {
 		SwaggerEnabled: getenvBool("SWAGGER_ENABLED", true),
 		APITitle:       getenv("API_TITLE", "Your API"),
 		APIVersion:     getenv("API_VERSION", "1.0.0"),
+
+		SupportTelegramInviteURL: getenv("TELEGRAM_SUPPORT_INVITE_URL", "https://t.me/+jXI2qDR9Y-xkZTI6"),
+		TelegramBotUsername:      getenv("TELEGRAM_BOT_USERNAME", "CyberMate_bot"),
 	}
 }
 
@@ -232,7 +239,7 @@ func LoadRedisConfig() ConfigRedis {
 func LoadCORSConfig() ConfigCORS {
 	return ConfigCORS{
 		AllowedOrigins: getenvStringSlice("CORS_ALLOWED_ORIGINS", []string{"http://localhost:3000", "http://localhost:5173"}),
-		AllowedMethods: getenvStringSlice("CORS_ALLOWED_METHODS", []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
+		AllowedMethods: getenvStringSlice("CORS_ALLOWED_METHODS", []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"}),
 		AllowedHeaders: getenvStringSlice("CORS_ALLOWED_HEADERS", []string{"Content-Type", "Authorization"}),
 	}
 }
