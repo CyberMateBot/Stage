@@ -25,12 +25,15 @@ RETURNING id`
 // GetProfileByTelegramID returns profile by telegram id or pgx.ErrNoRows.
 func (r *Repository) GetProfileByTelegramID(ctx context.Context, tx pgx.Tx, telegramID string) (repoModels.Profile, error) {
 	const q = `
-SELECT id, name, telegram_id, avatar, location, role, description, telegram_init_data, username, verified, created_at, updated_at
+SELECT id, name, telegram_id, avatar, location, role, description, telegram_init_data, username, verified, ui_theme, created_at, updated_at
 FROM profiles WHERE telegram_id = $1 LIMIT 1`
 
 	var p repoModels.Profile
 	qry := r.getQueryable(tx)
-	err := qry.QueryRow(ctx, q, telegramID).Scan(&p.ID, &p.Name, &p.TelegramID, &p.Avatar, &p.Location, &p.Role, &p.Description, &p.TelegramInitData, &p.Username, &p.Verified, &p.CreatedAt, &p.UpdatedAt)
+	err := qry.QueryRow(ctx, q, telegramID).Scan(
+		&p.ID, &p.Name, &p.TelegramID, &p.Avatar, &p.Location, &p.Role, &p.Description,
+		&p.TelegramInitData, &p.Username, &p.Verified, &p.UITheme, &p.CreatedAt, &p.UpdatedAt,
+	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return p, pgx.ErrNoRows
@@ -39,6 +42,24 @@ FROM profiles WHERE telegram_id = $1 LIMIT 1`
 		return p, err
 	}
 	return p, nil
+}
+
+// UpdateProfileTheme sets ui_theme for profile identified by telegram_id.
+func (r *Repository) UpdateProfileTheme(ctx context.Context, tx pgx.Tx, telegramID, theme string) error {
+	const q = `
+UPDATE profiles SET ui_theme = $2, updated_at = now()
+WHERE telegram_id = $1`
+
+	qry := r.getQueryable(tx)
+	tag, err := qry.Exec(ctx, q, telegramID, theme)
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to update profile theme", slog.Any("error", err), slog.String("telegram_id", telegramID))
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		return pgx.ErrNoRows
+	}
+	return nil
 }
 
 // CreateWalletForUser creates wallet for profile.

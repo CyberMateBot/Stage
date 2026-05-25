@@ -50,6 +50,34 @@ type ProfileUser struct {
     Avatar     string
     Username   string
     Verified   bool
+    Theme      string
+}
+
+const (
+    ThemeLight = "light"
+    ThemeDark  = "dark"
+)
+
+type UpdateProfileThemeInput struct {
+    TelegramID string
+    Theme      string
+}
+
+func (i *UpdateProfileThemeInput) Validate() error {
+    if i.TelegramID == "" {
+        return fmt.Errorf("%w: telegram_id is required", ErrInvalidInput)
+    }
+    if len(i.TelegramID) > 100 {
+        return fmt.Errorf("%w: telegram_id too long", ErrInvalidInput)
+    }
+    if i.Theme != ThemeLight && i.Theme != ThemeDark {
+        return fmt.Errorf("%w: theme must be light or dark", ErrInvalidInput)
+    }
+    return nil
+}
+
+type UpdateProfileThemeOutput struct {
+    Theme string
 }
 
 

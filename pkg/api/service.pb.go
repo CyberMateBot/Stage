@@ -116,6 +116,7 @@ type User struct {
 	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	Surname       string                 `protobuf:"bytes,3,opt,name=surname,proto3" json:"surname,omitempty"`
+	Theme         string                 `protobuf:"bytes,4,opt,name=theme,proto3" json:"theme,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -167,6 +168,13 @@ func (x *User) GetName() string {
 func (x *User) GetSurname() string {
 	if x != nil {
 		return x.Surname
+	}
+	return ""
+}
+
+func (x *User) GetTheme() string {
+	if x != nil {
+		return x.Theme
 	}
 	return ""
 }
@@ -312,6 +320,102 @@ func (x *GetUserByTelegramIdRequest) GetTelegramId() string {
 	return ""
 }
 
+type UpdateProfileThemeRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TelegramId    string                 `protobuf:"bytes,1,opt,name=telegram_id,json=telegramId,proto3" json:"telegram_id,omitempty"`
+	Theme         string                 `protobuf:"bytes,2,opt,name=theme,proto3" json:"theme,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateProfileThemeRequest) Reset() {
+	*x = UpdateProfileThemeRequest{}
+	mi := &file_service_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateProfileThemeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateProfileThemeRequest) ProtoMessage() {}
+
+func (x *UpdateProfileThemeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_service_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateProfileThemeRequest.ProtoReflect.Descriptor instead.
+func (*UpdateProfileThemeRequest) Descriptor() ([]byte, []int) {
+	return file_service_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *UpdateProfileThemeRequest) GetTelegramId() string {
+	if x != nil {
+		return x.TelegramId
+	}
+	return ""
+}
+
+func (x *UpdateProfileThemeRequest) GetTheme() string {
+	if x != nil {
+		return x.Theme
+	}
+	return ""
+}
+
+type UpdateProfileThemeResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Theme         string                 `protobuf:"bytes,1,opt,name=theme,proto3" json:"theme,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateProfileThemeResponse) Reset() {
+	*x = UpdateProfileThemeResponse{}
+	mi := &file_service_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateProfileThemeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateProfileThemeResponse) ProtoMessage() {}
+
+func (x *UpdateProfileThemeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_service_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateProfileThemeResponse.ProtoReflect.Descriptor instead.
+func (*UpdateProfileThemeResponse) Descriptor() ([]byte, []int) {
+	return file_service_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *UpdateProfileThemeResponse) GetTheme() string {
+	if x != nil {
+		return x.Theme
+	}
+	return ""
+}
+
 var File_service_proto protoreflect.FileDescriptor
 
 const file_service_proto_rawDesc = "" +
@@ -320,11 +424,12 @@ const file_service_proto_rawDesc = "" +
 	"\x0eGetUserRequest\x12=\n" +
 	"\auser_id\x18\x01 \x01(\x03B$\x92A\x1e2\x1cThe UserId field description\xe0A\x02R\x06userId\";\n" +
 	"\x0fGetUserResponse\x12(\n" +
-	"\x04data\x18\x01 \x01(\v2\x14.api.gotemplate.UserR\x04data\"D\n" +
+	"\x04data\x18\x01 \x01(\v2\x14.api.gotemplate.UserR\x04data\"Z\n" +
 	"\x04User\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x18\n" +
-	"\asurname\x18\x03 \x01(\tR\asurname\"e\n" +
+	"\asurname\x18\x03 \x01(\tR\asurname\x12\x14\n" +
+	"\x05theme\x18\x04 \x01(\tR\x05theme\"e\n" +
 	"\x19RegisterByTelegramRequest\x12'\n" +
 	"\rinit_data_raw\x18\x01 \x01(\tB\x03\xe0A\x02R\vinitDataRaw\x12\x1f\n" +
 	"\vstart_param\x18\x02 \x01(\tR\n" +
@@ -334,13 +439,20 @@ const file_service_proto_rawDesc = "" +
 	"profile_id\x18\x01 \x01(\x03R\tprofileId\"B\n" +
 	"\x1aGetUserByTelegramIdRequest\x12$\n" +
 	"\vtelegram_id\x18\x01 \x01(\tB\x03\xe0A\x02R\n" +
-	"telegramId2\xb1\x01\n" +
+	"telegramId\"\\\n" +
+	"\x19UpdateProfileThemeRequest\x12$\n" +
+	"\vtelegram_id\x18\x01 \x01(\tB\x03\xe0A\x02R\n" +
+	"telegramId\x12\x19\n" +
+	"\x05theme\x18\x02 \x01(\tB\x03\xe0A\x02R\x05theme\"2\n" +
+	"\x1aUpdateProfileThemeResponse\x12\x14\n" +
+	"\x05theme\x18\x01 \x01(\tR\x05theme2\xb1\x01\n" +
 	"\x05Users\x12\xa7\x01\n" +
 	"\aGetUser\x12\x1e.api.gotemplate.GetUserRequest\x1a\x1f.api.gotemplate.GetUserResponse\"[\x92AH\x12\aGetUser\x1a=Метод для получения пользователя\x82\xd3\xe4\x93\x02\n" +
-	"\x12\b/v1/user2\x9d\x03\n" +
+	"\x12\b/v1/user2\xfe\x04\n" +
 	"\tCyberMate\x12\xc7\x01\n" +
 	"\x12RegisterByTelegram\x12).api.gotemplate.RegisterByTelegramRequest\x1a*.api.gotemplate.RegisterByTelegramResponse\"Z\x92A@\x12\x12RegisterByTelegram\x1a*Register user by Telegram WebApp init data\x82\xd3\xe4\x93\x02\x11:\x01*\"\f/v1/register\x12\xc5\x01\n" +
-	"\x13GetUserByTelegramId\x12*.api.gotemplate.GetUserByTelegramIdRequest\x1a\x1f.api.gotemplate.GetUserResponse\"a\x92A6\x12\x13GetUserByTelegramId\x1a\x1fGet user profile by telegram id\x82\xd3\xe4\x93\x02\"\x12 /v1/users/telegram/{telegram_id}BK\x92A\x16\x12\x14\n" +
+	"\x13GetUserByTelegramId\x12*.api.gotemplate.GetUserByTelegramIdRequest\x1a\x1f.api.gotemplate.GetUserResponse\"a\x92A6\x12\x13GetUserByTelegramId\x1a\x1fGet user profile by telegram id\x82\xd3\xe4\x93\x02\"\x12 /v1/users/telegram/{telegram_id}\x12\xde\x01\n" +
+	"\x12UpdateProfileTheme\x12).api.gotemplate.UpdateProfileThemeRequest\x1a*.api.gotemplate.UpdateProfileThemeResponse\"q\x92A=\x12\x12UpdateProfileTheme\x1a'Update profile UI theme (light or dark)\x82\xd3\xe4\x93\x02+:\x01*2&/v1/users/telegram/{telegram_id}/themeBK\x92A\x16\x12\x14\n" +
 	"\vGO Template2\x051.0.0Z0github.com/twelvepills-936/tgapp-/api;gotemplateb\x06proto3"
 
 var (
@@ -355,7 +467,7 @@ func file_service_proto_rawDescGZIP() []byte {
 	return file_service_proto_rawDescData
 }
 
-var file_service_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_service_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_service_proto_goTypes = []any{
 	(*GetUserRequest)(nil),             // 0: api.gotemplate.GetUserRequest
 	(*GetUserResponse)(nil),            // 1: api.gotemplate.GetUserResponse
@@ -363,17 +475,21 @@ var file_service_proto_goTypes = []any{
 	(*RegisterByTelegramRequest)(nil),  // 3: api.gotemplate.RegisterByTelegramRequest
 	(*RegisterByTelegramResponse)(nil), // 4: api.gotemplate.RegisterByTelegramResponse
 	(*GetUserByTelegramIdRequest)(nil), // 5: api.gotemplate.GetUserByTelegramIdRequest
+	(*UpdateProfileThemeRequest)(nil),  // 6: api.gotemplate.UpdateProfileThemeRequest
+	(*UpdateProfileThemeResponse)(nil), // 7: api.gotemplate.UpdateProfileThemeResponse
 }
 var file_service_proto_depIdxs = []int32{
 	2, // 0: api.gotemplate.GetUserResponse.data:type_name -> api.gotemplate.User
 	0, // 1: api.gotemplate.Users.GetUser:input_type -> api.gotemplate.GetUserRequest
 	3, // 2: api.gotemplate.CyberMate.RegisterByTelegram:input_type -> api.gotemplate.RegisterByTelegramRequest
 	5, // 3: api.gotemplate.CyberMate.GetUserByTelegramId:input_type -> api.gotemplate.GetUserByTelegramIdRequest
-	1, // 4: api.gotemplate.Users.GetUser:output_type -> api.gotemplate.GetUserResponse
-	4, // 5: api.gotemplate.CyberMate.RegisterByTelegram:output_type -> api.gotemplate.RegisterByTelegramResponse
-	1, // 6: api.gotemplate.CyberMate.GetUserByTelegramId:output_type -> api.gotemplate.GetUserResponse
-	4, // [4:7] is the sub-list for method output_type
-	1, // [1:4] is the sub-list for method input_type
+	6, // 4: api.gotemplate.CyberMate.UpdateProfileTheme:input_type -> api.gotemplate.UpdateProfileThemeRequest
+	1, // 5: api.gotemplate.Users.GetUser:output_type -> api.gotemplate.GetUserResponse
+	4, // 6: api.gotemplate.CyberMate.RegisterByTelegram:output_type -> api.gotemplate.RegisterByTelegramResponse
+	1, // 7: api.gotemplate.CyberMate.GetUserByTelegramId:output_type -> api.gotemplate.GetUserResponse
+	7, // 8: api.gotemplate.CyberMate.UpdateProfileTheme:output_type -> api.gotemplate.UpdateProfileThemeResponse
+	5, // [5:9] is the sub-list for method output_type
+	1, // [1:5] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
 	1, // [1:1] is the sub-list for extension extendee
 	0, // [0:1] is the sub-list for field type_name
@@ -390,7 +506,7 @@ func file_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_service_proto_rawDesc), len(file_service_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   2,
 		},

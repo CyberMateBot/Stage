@@ -23,7 +23,14 @@ func (f *fakeUC) RegisterByTelegram(ctx context.Context, input ucModels.Register
 }
 func (f *fakeUC) GetUserByTelegramID(ctx context.Context, telegramID string) (ucModels.GetProfileOutput, error) {
     if telegramID == "x" { return ucModels.GetProfileOutput{}, ucModels.ErrProfileNotFound }
-    return ucModels.GetProfileOutput{Data: ucModels.ProfileUser{ID:1, Name:"A"}}, nil
+    return ucModels.GetProfileOutput{Data: ucModels.ProfileUser{ID:1, Name:"A", Theme: ucModels.ThemeLight}}, nil
+}
+func (f *fakeUC) UpdateProfileTheme(ctx context.Context, input ucModels.UpdateProfileThemeInput) (ucModels.UpdateProfileThemeOutput, error) {
+    if input.TelegramID == "x" { return ucModels.UpdateProfileThemeOutput{}, ucModels.ErrProfileNotFound }
+    if input.Theme != ucModels.ThemeLight && input.Theme != ucModels.ThemeDark {
+        return ucModels.UpdateProfileThemeOutput{}, ucModels.ErrInvalidInput
+    }
+    return ucModels.UpdateProfileThemeOutput{Theme: input.Theme}, nil
 }
 
 var _ internal.UseCase = (*fakeUC)(nil)

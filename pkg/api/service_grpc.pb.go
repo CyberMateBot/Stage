@@ -123,6 +123,7 @@ var Users_ServiceDesc = grpc.ServiceDesc{
 const (
 	CyberMate_RegisterByTelegram_FullMethodName  = "/api.gotemplate.CyberMate/RegisterByTelegram"
 	CyberMate_GetUserByTelegramId_FullMethodName = "/api.gotemplate.CyberMate/GetUserByTelegramId"
+	CyberMate_UpdateProfileTheme_FullMethodName  = "/api.gotemplate.CyberMate/UpdateProfileTheme"
 )
 
 // CyberMateClient is the client API for CyberMate service.
@@ -135,6 +136,8 @@ type CyberMateClient interface {
 	RegisterByTelegram(ctx context.Context, in *RegisterByTelegramRequest, opts ...grpc.CallOption) (*RegisterByTelegramResponse, error)
 	// Returns user profile by telegram_id
 	GetUserByTelegramId(ctx context.Context, in *GetUserByTelegramIdRequest, opts ...grpc.CallOption) (*GetUserResponse, error)
+	// Updates UI theme preference (light or dark) for a profile
+	UpdateProfileTheme(ctx context.Context, in *UpdateProfileThemeRequest, opts ...grpc.CallOption) (*UpdateProfileThemeResponse, error)
 }
 
 type cyberMateClient struct {
@@ -165,6 +168,16 @@ func (c *cyberMateClient) GetUserByTelegramId(ctx context.Context, in *GetUserBy
 	return out, nil
 }
 
+func (c *cyberMateClient) UpdateProfileTheme(ctx context.Context, in *UpdateProfileThemeRequest, opts ...grpc.CallOption) (*UpdateProfileThemeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateProfileThemeResponse)
+	err := c.cc.Invoke(ctx, CyberMate_UpdateProfileTheme_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CyberMateServer is the server API for CyberMate service.
 // All implementations must embed UnimplementedCyberMateServer
 // for forward compatibility.
@@ -175,6 +188,8 @@ type CyberMateServer interface {
 	RegisterByTelegram(context.Context, *RegisterByTelegramRequest) (*RegisterByTelegramResponse, error)
 	// Returns user profile by telegram_id
 	GetUserByTelegramId(context.Context, *GetUserByTelegramIdRequest) (*GetUserResponse, error)
+	// Updates UI theme preference (light or dark) for a profile
+	UpdateProfileTheme(context.Context, *UpdateProfileThemeRequest) (*UpdateProfileThemeResponse, error)
 	mustEmbedUnimplementedCyberMateServer()
 }
 
@@ -190,6 +205,9 @@ func (UnimplementedCyberMateServer) RegisterByTelegram(context.Context, *Registe
 }
 func (UnimplementedCyberMateServer) GetUserByTelegramId(context.Context, *GetUserByTelegramIdRequest) (*GetUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserByTelegramId not implemented")
+}
+func (UnimplementedCyberMateServer) UpdateProfileTheme(context.Context, *UpdateProfileThemeRequest) (*UpdateProfileThemeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateProfileTheme not implemented")
 }
 func (UnimplementedCyberMateServer) mustEmbedUnimplementedCyberMateServer() {}
 func (UnimplementedCyberMateServer) testEmbeddedByValue()                   {}
@@ -248,6 +266,24 @@ func _CyberMate_GetUserByTelegramId_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CyberMate_UpdateProfileTheme_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateProfileThemeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CyberMateServer).UpdateProfileTheme(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CyberMate_UpdateProfileTheme_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CyberMateServer).UpdateProfileTheme(ctx, req.(*UpdateProfileThemeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // CyberMate_ServiceDesc is the grpc.ServiceDesc for CyberMate service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -262,6 +298,10 @@ var CyberMate_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUserByTelegramId",
 			Handler:    _CyberMate_GetUserByTelegramId_Handler,
+		},
+		{
+			MethodName: "UpdateProfileTheme",
+			Handler:    _CyberMate_UpdateProfileTheme_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

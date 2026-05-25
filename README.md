@@ -182,7 +182,13 @@ SQL миграции находятся в `internal/migrations/`:
 -- Основные таблицы: profiles, wallets, referrals
 ```
 
-Применяются автоматически при старте контейнера PostgreSQL.
+**Локально** (после `docker compose up -d postgres`):
+
+```powershell
+.\scripts\migrate.ps1
+```
+
+В production/CI — Flyway (см. `.gitlab/`).
 
 ## 📊 База данных
 

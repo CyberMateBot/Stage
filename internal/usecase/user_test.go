@@ -23,6 +23,7 @@ func (f *fakeRepo) CreateProfile(ctx context.Context, tx pgx.Tx, p repoModels.Pr
 func (f *fakeRepo) GetProfileByTelegramID(ctx context.Context, tx pgx.Tx, telegramID string) (repoModels.Profile, error) { return repoModels.Profile{}, errors.New("not impl") }
 func (f *fakeRepo) CreateWalletForUser(ctx context.Context, tx pgx.Tx, profileID int64) (int64, error) { return 0, nil }
 func (f *fakeRepo) AddReferral(ctx context.Context, tx pgx.Tx, referrerProfileID int64, refereeProfileID int64) error { return nil }
+func (f *fakeRepo) UpdateProfileTheme(ctx context.Context, tx pgx.Tx, telegramID, theme string) error { return nil }
 
 func TestGetUser_OK(t *testing.T) {
     var _ internal.Repository = (*fakeRepo)(nil)

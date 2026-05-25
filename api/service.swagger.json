@@ -118,9 +118,60 @@
           "CyberMate"
         ]
       }
+    },
+    "/v1/users/telegram/{telegramId}/theme": {
+      "patch": {
+        "summary": "UpdateProfileTheme",
+        "description": "Update profile UI theme (light or dark)",
+        "operationId": "CyberMate_UpdateProfileTheme",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gotemplateUpdateProfileThemeResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "telegramId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CyberMateUpdateProfileThemeBody"
+            }
+          }
+        ],
+        "tags": [
+          "CyberMate"
+        ]
+      }
     }
   },
   "definitions": {
+    "CyberMateUpdateProfileThemeBody": {
+      "type": "object",
+      "properties": {
+        "theme": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "theme"
+      ]
+    },
     "gotemplateGetUserResponse": {
       "type": "object",
       "properties": {
@@ -154,6 +205,14 @@
         }
       }
     },
+    "gotemplateUpdateProfileThemeResponse": {
+      "type": "object",
+      "properties": {
+        "theme": {
+          "type": "string"
+        }
+      }
+    },
     "gotemplateUser": {
       "type": "object",
       "properties": {
@@ -165,6 +224,9 @@
           "type": "string"
         },
         "surname": {
+          "type": "string"
+        },
+        "theme": {
           "type": "string"
         }
       }

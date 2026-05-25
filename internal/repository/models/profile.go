@@ -13,6 +13,7 @@ type Profile struct {
     TelegramInitData string
     Username         string
     Verified         bool
+    UITheme          string
     CreatedAt        time.Time
     UpdatedAt        time.Time
 }

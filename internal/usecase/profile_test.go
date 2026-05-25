@@ -42,6 +42,15 @@ func (f *fakeRepoProfile) GetProfileByTelegramID(ctx context.Context, tx pgx.Tx,
 }
 func (f *fakeRepoProfile) CreateWalletForUser(ctx context.Context, tx pgx.Tx, profileID int64) (int64, error) { return 1, nil }
 func (f *fakeRepoProfile) AddReferral(ctx context.Context, tx pgx.Tx, referrerProfileID int64, refereeProfileID int64) error { return nil }
+func (f *fakeRepoProfile) UpdateProfileTheme(ctx context.Context, tx pgx.Tx, telegramID, theme string) error {
+    p, ok := f.exists[telegramID]
+    if !ok {
+        return pgx.ErrNoRows
+    }
+    p.UITheme = theme
+    f.exists[telegramID] = p
+    return nil
+}
 
 func TestRegisterByTelegram_CreatesProfile(t *testing.T) {
     var _ internal.Repository = (*fakeRepoProfile)(nil)
@@ -77,6 +86,24 @@ func TestGetUserByTelegramID_NotFound(t *testing.T) {
     _, err := uc.GetUserByTelegramID(context.Background(), "not-exists")
     if !errors.Is(err, ucModels.ErrProfileNotFound) {
         t.Fatalf("expected ErrProfileNotFound, got %v", err)
+    }
+}
+
+func TestUpdateProfileTheme_OK(t *testing.T) {
+    repo := &fakeRepoProfile{exists: map[string]repoModels.Profile{
+        "42": {TelegramID: "42", UITheme: ucModels.ThemeLight},
+    }}
+    uc := NewUseCase(repo)
+
+    out, err := uc.UpdateProfileTheme(context.Background(), ucModels.UpdateProfileThemeInput{
+        TelegramID: "42",
+        Theme:      ucModels.ThemeDark,
+    })
+    if err != nil {
+        t.Fatalf("unexpected error: %v", err)
+    }
+    if out.Theme != ucModels.ThemeDark {
+        t.Fatalf("expected dark, got %s", out.Theme)
     }
 }
 
