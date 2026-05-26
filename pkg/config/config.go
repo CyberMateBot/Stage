@@ -27,10 +27,7 @@ type ConfigApp struct {
 	APITitle       string
 	APIVersion     string
 
-<<<<<<< HEAD
-=======
-	// Telegram deep links for Mini App UI (Support button, etc.)
->>>>>>> 3489ac71c17ae6e070eec77e5b2b0b383107f257
+	// Telegram deep links for Mini App UI (Support button, referral links).
 	SupportTelegramInviteURL string
 	TelegramBotUsername      string
 }

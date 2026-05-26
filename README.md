@@ -122,6 +122,8 @@ GET /v1/user?user_id=42
 | Переменная | Описание |
 |-----------|----------|
 | `TELEGRAM_BOT_TOKEN` | Токен бота |
+| `TELEGRAM_BOT_USERNAME` | Username бота без `@` (по умолчанию `CyberMate_bot`) — для реферальных ссылок |
+| `TELEGRAM_SUPPORT_INVITE_URL` | Ссылка на чат Support (не бот) |
 
 [Полная таблица конфигурации →](docs/configuration.md)
 
