@@ -80,6 +80,20 @@ func TestRegisterByTelegram_AlreadyExists(t *testing.T) {
     }
 }
 
+func TestRegisterByTelegram_InvalidInitData_NoUserParam(t *testing.T) {
+	repo := &fakeRepoProfile{exists: map[string]repoModels.Profile{}}
+	uc := NewUseCase(repo)
+
+	values := url.Values{}
+	values.Set("foo", "bar")
+	initRaw := base64.StdEncoding.EncodeToString([]byte(values.Encode()))
+
+	_, err := uc.RegisterByTelegram(context.Background(), ucModels.RegisterByTelegramInput{InitDataRaw: initRaw})
+	if !errors.Is(err, ucModels.ErrInvalidInput) {
+		t.Fatalf("expected ErrInvalidInput, got %v", err)
+	}
+}
+
 func TestGetUserByTelegramID_NotFound(t *testing.T) {
     repo := &fakeRepoProfile{exists: map[string]repoModels.Profile{}}
     uc := NewUseCase(repo)

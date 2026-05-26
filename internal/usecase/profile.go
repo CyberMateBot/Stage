@@ -23,15 +23,15 @@ func (uc *useCase) RegisterByTelegram(ctx context.Context, input ucModels.Regist
 	// decode init_data_raw (base64) and parse user json param similar to Node parseAuthToken path
 	decoded, decodeErr := base64.StdEncoding.DecodeString(input.InitDataRaw)
 	if decodeErr != nil {
-		return output, fmt.Errorf("failed to decode init data: %w", decodeErr)
+		return output, fmt.Errorf("%w: failed to decode init data", ucModels.ErrInvalidInput)
 	}
 	params, parseErr := url.ParseQuery(string(decoded))
 	if parseErr != nil {
-		return output, fmt.Errorf("failed to parse init data: %w", parseErr)
+		return output, fmt.Errorf("%w: failed to parse init data", ucModels.ErrInvalidInput)
 	}
 	userStr := params.Get("user")
 	if userStr == "" {
-		return output, errors.New("user not found in init data")
+		return output, fmt.Errorf("%w: user not found in init data", ucModels.ErrInvalidInput)
 	}
 	// we don't need full user struct now; minimally extract fields from json
 	// to keep scope tight, parse a subset via a lightweight map
@@ -43,7 +43,10 @@ func (uc *useCase) RegisterByTelegram(ctx context.Context, input ucModels.Regist
 		LanguageCode string `json:"language_code"`
 	}{}
 	if unmarshalErr := json.Unmarshal([]byte(userStr), &tg); unmarshalErr != nil {
-		return output, fmt.Errorf("failed to unmarshal user data: %w", unmarshalErr)
+		return output, fmt.Errorf("%w: failed to unmarshal user data", ucModels.ErrInvalidInput)
+	}
+	if tg.ID == 0 {
+		return output, fmt.Errorf("%w: telegram user id is missing", ucModels.ErrInvalidInput)
 	}
 
 	tx, txErr := uc.repo.DBBeginTransaction(ctx)
