@@ -13,7 +13,9 @@ import (
 	"github.com/twelvepills-936/tgapp-/pkg/app"
 	"github.com/twelvepills-936/tgapp-/pkg/applinks"
 	"github.com/twelvepills-936/tgapp-/pkg/config"
+	"github.com/twelvepills-936/tgapp-/pkg/ai"
 	"github.com/twelvepills-936/tgapp-/pkg/cors"
+	"github.com/twelvepills-936/tgapp-/pkg/generate"
 	"github.com/twelvepills-936/tgapp-/pkg/health"
 	"github.com/twelvepills-936/tgapp-/pkg/logger"
 	"github.com/twelvepills-936/tgapp-/pkg/swagger"
@@ -80,11 +82,16 @@ func main() {
 		return
 	}
 
+	aiSvc := ai.NewService(config.LoadAIConfig())
+
 	httpHandler := cors.Wrap(
 		health.Wrap(
-			applinks.Wrap(
-				swagger.Wrap(application.ServeMux, addConfig.App.SwaggerEnabled),
-				addConfig.App,
+			generate.Wrap(
+				applinks.Wrap(
+					swagger.Wrap(application.ServeMux, addConfig.App.SwaggerEnabled),
+					addConfig.App,
+				),
+				aiSvc,
 			),
 		),
 		addConfig.CORS,
