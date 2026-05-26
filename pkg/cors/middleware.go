@@ -16,11 +16,16 @@ func Wrap(next http.Handler, cfg config.ConfigCORS) http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		origin := r.Header.Get("Origin")
-		if origin != "" {
-			if allowAll || originAllowed(origin, allowed) {
-				w.Header().Set("Access-Control-Allow-Origin", pickAllowOrigin(origin, allowAll))
-				w.Header().Add("Vary", "Origin")
-			}
+
+		if allowAll {
+			w.Header().Set("Access-Control-Allow-Origin", pickAllowOrigin(origin, true))
+			w.Header().Add("Vary", "Origin")
+		} else if origin != "" && originAllowed(origin, allowed) {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+			w.Header().Add("Vary", "Origin")
+		}
+
+		if allowAll || origin != "" {
 			w.Header().Set("Access-Control-Allow-Methods", methods)
 			w.Header().Set("Access-Control-Allow-Headers", headers)
 			w.Header().Set("Access-Control-Max-Age", "86400")

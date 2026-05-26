@@ -31,10 +31,17 @@ type App struct {
 }
 
 // LoadConfigFromEnv loads gRPC/HTTP ports from the environment.
+// HTTP uses PORT when set (Railway, Heroku, Render) else APP_HTTP_PORT.
 func LoadConfigFromEnv() Config {
+	httpPort := getenvInt("APP_HTTP_PORT", 8090)
+	if p := os.Getenv("PORT"); p != "" {
+		if port, err := strconv.Atoi(p); err == nil && port > 0 {
+			httpPort = port
+		}
+	}
 	return Config{
 		GRPCPort: getenvInt("APP_GRPC_PORT", 8091),
-		HTTPPort: getenvInt("APP_HTTP_PORT", 8090),
+		HTTPPort: httpPort,
 	}
 }
 

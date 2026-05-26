@@ -2,9 +2,9 @@
 
 Backend: `tgapp-` (Go). UI — **отдельный** репозиторий (Vite/React и т.д.).
 
-## CORS
+## CORS и API URL
 
-В `.env` бэкенда:
+Локально — в `.env` бэкенда:
 
 ```env
 CORS_ALLOWED_ORIGINS=http://localhost:5173
@@ -14,7 +14,10 @@ CORS_ALLOWED_ORIGINS=http://localhost:5173
 
 ```env
 VITE_API_URL=http://localhost:8090
+# или VITE_API_BASE_URL — как в вашем репозитории фронта
 ```
+
+**Продакшен (Railway):** см. `docs/PRODUCTION_RAILWAY.md` — `PORT`, Postgres, `CORS_ALLOWED_ORIGINS`, `VITE_API_BASE_URL` при сборке фронта.
 
 ## API: тема (light / dark)
 

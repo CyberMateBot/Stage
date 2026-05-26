@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -127,21 +128,16 @@ func getenvDuration(key string, def time.Duration) time.Duration {
 
 func getenvStringSlice(key string, def []string) []string {
 	if v := os.Getenv(key); v != "" {
-		// Простой split по запятой
-		result := []string{}
-		start := 0
-		for i, ch := range v {
-			if ch == ',' {
-				if i > start {
-					result = append(result, v[start:i])
-				}
-				start = i + 1
+		parts := strings.Split(v, ",")
+		result := make([]string, 0, len(parts))
+		for _, p := range parts {
+			if s := strings.TrimSpace(p); s != "" {
+				result = append(result, s)
 			}
 		}
-		if start < len(v) {
-			result = append(result, v[start:])
+		if len(result) > 0 {
+			return result
 		}
-		return result
 	}
 	return def
 }
@@ -242,6 +238,8 @@ func LoadCORSConfig() ConfigCORS {
 	return ConfigCORS{
 		AllowedOrigins: getenvStringSlice("CORS_ALLOWED_ORIGINS", []string{"http://localhost:3000", "http://localhost:5173"}),
 		AllowedMethods: getenvStringSlice("CORS_ALLOWED_METHODS", []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"}),
-		AllowedHeaders: getenvStringSlice("CORS_ALLOWED_HEADERS", []string{"Content-Type", "Authorization"}),
+		AllowedHeaders: getenvStringSlice("CORS_ALLOWED_HEADERS", []string{
+			"Content-Type", "Authorization", "Accept", "X-Requested-With",
+		}),
 	}
 }
