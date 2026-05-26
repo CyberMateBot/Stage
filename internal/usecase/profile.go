@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	repoModels "github.com/twelvepills-936/tgapp-/internal/repository/models"
 	ucModels "github.com/twelvepills-936/tgapp-/internal/usecase/models"
+	"github.com/twelvepills-936/tgapp-/pkg/applinks"
 )
 
 func (uc *useCase) RegisterByTelegram(ctx context.Context, input ucModels.RegisterByTelegramInput) (output ucModels.RegisterByTelegramOutput, err error) {
@@ -87,8 +88,11 @@ func (uc *useCase) RegisterByTelegram(ctx context.Context, input ucModels.Regist
 	}
 
 	if input.StartParam != "" {
-		// find referrer by telegram_id
-		ref, refErr := uc.repo.GetProfileByTelegramID(ctx, tx, input.StartParam)
+		referrerID := applinks.ParseReferralStartParam(input.StartParam, "")
+		if referrerID == "" {
+			referrerID = input.StartParam
+		}
+		ref, refErr := uc.repo.GetProfileByTelegramID(ctx, tx, referrerID)
 		if refErr == nil && ref.ID != 0 {
 			if addRefErr := uc.repo.AddReferral(ctx, tx, ref.ID, pid); addRefErr != nil {
 				err = addRefErr

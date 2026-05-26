@@ -28,8 +28,9 @@ type ConfigApp struct {
 	APIVersion     string
 
 	// Telegram deep links for Mini App UI (Support button, referral links).
-	SupportTelegramInviteURL string
-	TelegramBotUsername      string
+	SupportTelegramInviteURL    string
+	TelegramBotUsername         string
+	TelegramReferralParamPrefix string // e.g. ref_ → startapp=ref_{telegram_id}
 }
 
 type ConfigServer struct {
@@ -173,8 +174,9 @@ func LoadAppConfig() ConfigApp {
 		APITitle:       getenv("API_TITLE", "Your API"),
 		APIVersion:     getenv("API_VERSION", "1.0.0"),
 
-		SupportTelegramInviteURL: getenv("TELEGRAM_SUPPORT_INVITE_URL", "https://t.me/+jXI2qDR9Y-xkZTI6"),
-		TelegramBotUsername:      getenv("TELEGRAM_BOT_USERNAME", "CyberMate_bot"),
+		SupportTelegramInviteURL:    getenv("TELEGRAM_SUPPORT_INVITE_URL", "https://t.me/+jXI2qDR9Y-xkZTI6"),
+		TelegramBotUsername:         getenv("TELEGRAM_BOT_USERNAME", "CyberMate_bot"),
+		TelegramReferralParamPrefix: getenv("TELEGRAM_REFERRAL_PARAM_PREFIX", "ref_"),
 	}
 }
 

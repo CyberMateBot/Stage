@@ -25,7 +25,7 @@ GET /v1/app/links
 {
   "support_chat_url": "https://t.me/+jXI2qDR9Y-xkZTI6",
   "bot_username": "CyberMate_bot",
-  "referral_link_base": "https://t.me/CyberMate_bot?start="
+  "referral_link_base": "https://t.me/CyberMate_bot?startapp=ref_"
 }
 ```
 
@@ -36,7 +36,7 @@ GET /v1/users/telegram/{telegram_id}/referral-link
 ```
 
 ```json
-{ "referral_link": "https://t.me/CyberMate_bot?start=123456789" }
+{ "referral_link": "https://t.me/CyberMate_bot?startapp=ref_123456789" }
 ```
 
 ## Реализация на фронте (Mini App)

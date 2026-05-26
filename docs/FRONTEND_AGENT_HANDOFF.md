@@ -40,7 +40,7 @@ VITE_API_URL=http://localhost:8090
 
 Бот Mini App: **@CyberMate_bot** (`TELEGRAM_BOT_USERNAME=CyberMate_bot`).
 
-Реферальная ссылка: `https://t.me/CyberMate_bot?start={telegram_id}` — не подставляйте другой username на фронте.
+Реферальная ссылка (Mini App): `https://t.me/CyberMate_bot?startapp=ref_{telegram_id}` — не `CyberMateBot` и не `?start=`.
 
 По умолчанию support: `https://t.me/+jXI2qDR9Y-xkZTI6` ([CyberMate Community](https://t.me/+jXI2qDR9Y-xkZTI6)).
 

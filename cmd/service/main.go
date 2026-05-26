@@ -31,13 +31,11 @@ func main() {
 
 	addConfig := config.LoadConfig()
 
-	// Telegram bot initialization
-	// Bot is created but polling is not started here to avoid blocking the service.
-	// If needed, run bot.StartPolling(ctx) in a separate goroutine.
-	_, err = bot.New()
+	tgBot, err := bot.New()
 	if err != nil {
 		slog.WarnContext(ctx, "failed to init bot", logger.ErrorAttr(err))
-		// Continue without bot - it's not critical for service startup
+	} else if tgBot != nil {
+		go tgBot.StartPolling(ctx)
 	}
 
 	pool, err := repository.NewPostgres(ctx, repoModels.ConfigPostgres(addConfig.Postgres))

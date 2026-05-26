@@ -10,6 +10,8 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
+const startWelcomeText = "⚡️ CyberMate\n\n👇 Нажимай кнопку ниже и начинай создавать"
+
 type Bot struct {
 	api *tgbotapi.BotAPI
 }
@@ -68,8 +70,7 @@ func (b *Bot) StartPolling(ctx context.Context) {
 			return
 		case upd := <-updates:
 			if upd.Message != nil && upd.Message.IsCommand() && upd.Message.Command() == "start" {
-				name := upd.Message.From.FirstName
-				msg := tgbotapi.NewMessage(upd.Message.Chat.ID, "Добро пожаловать в CyberMate, "+name+"💚\n– Получайте рекламные задания...")
+				msg := tgbotapi.NewMessage(upd.Message.Chat.ID, startWelcomeText)
 				if _, err := b.api.Send(msg); err != nil {
 					slog.ErrorContext(ctx, "failed to send telegram message", slog.Any("error", err))
 				}

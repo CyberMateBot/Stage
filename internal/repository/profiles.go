@@ -25,7 +25,10 @@ RETURNING id`
 // GetProfileByTelegramID returns profile by telegram id or pgx.ErrNoRows.
 func (r *Repository) GetProfileByTelegramID(ctx context.Context, tx pgx.Tx, telegramID string) (repoModels.Profile, error) {
 	const q = `
-SELECT id, name, telegram_id, avatar, location, role, description, telegram_init_data, username, verified, ui_theme, created_at, updated_at
+SELECT id, name, telegram_id,
+       COALESCE(avatar, ''), COALESCE(location, ''), COALESCE(role, ''),
+       COALESCE(description, ''), COALESCE(telegram_init_data, ''), COALESCE(username, ''),
+       verified, ui_theme, created_at, updated_at
 FROM profiles WHERE telegram_id = $1 LIMIT 1`
 
 	var p repoModels.Profile

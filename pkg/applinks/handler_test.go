@@ -34,7 +34,7 @@ func TestWrap_AppLinks(t *testing.T) {
 	if body.BotUsername != "CyberMate_bot" {
 		t.Fatalf("bot_username = %q", body.BotUsername)
 	}
-	if body.ReferralLinkBase != "https://t.me/CyberMate_bot?start=" {
+	if body.ReferralLinkBase != "https://t.me/CyberMate_bot?startapp=ref_" {
 		t.Fatalf("referral_link_base = %q", body.ReferralLinkBase)
 	}
 }
@@ -52,7 +52,7 @@ func TestWrap_ReferralLink(t *testing.T) {
 	if err := json.NewDecoder(rec.Body).Decode(&body); err != nil {
 		t.Fatal(err)
 	}
-	want := "https://t.me/CyberMate_bot?start=42"
+	want := "https://t.me/CyberMate_bot?startapp=ref_42"
 	if body.ReferralLink != want {
 		t.Fatalf("referral_link = %q, want %q", body.ReferralLink, want)
 	}

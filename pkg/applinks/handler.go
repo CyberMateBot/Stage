@@ -38,7 +38,7 @@ func Wrap(next http.Handler, app config.ConfigApp) http.Handler {
 			_ = json.NewEncoder(w).Encode(linksResponse{
 				SupportChatURL:   app.SupportTelegramInviteURL,
 				BotUsername:      botUsername,
-				ReferralLinkBase: ReferralLinkBase(botUsername),
+				ReferralLinkBase: ReferralLinkBase(botUsername, app.TelegramReferralParamPrefix),
 			})
 			return
 
@@ -54,7 +54,7 @@ func Wrap(next http.Handler, app config.ConfigApp) http.Handler {
 			}
 			w.Header().Set("Content-Type", "application/json; charset=utf-8")
 			_ = json.NewEncoder(w).Encode(referralLinkResponse{
-				ReferralLink: ReferralLink(botUsername, telegramID),
+				ReferralLink: ReferralLink(botUsername, telegramID, app.TelegramReferralParamPrefix),
 			})
 			return
 		}
