@@ -1,17 +1,10 @@
-<<<<<<< HEAD
-# Кнопка Support
-
-Ссылка: [https://t.me/+jXI2qDR9Y-xkZTI6](https://t.me/+jXI2qDR9Y-xkZTI6) (канал **CyberMate | Community**).
-
-**Не** открывать `https://t.me/${BOT_USERNAME}` — это чат с ботом, не support.
-
-Реализация во фронте: `tgapp_front/src/lib/openSupport.js`, кнопка в `App.jsx` → `handleSupportClick`.
-=======
 # Кнопка Support → Telegram
 
 ## Ссылка
 
 Чат/канал сообщества CyberMate: [https://t.me/+jXI2qDR9Y-xkZTI6](https://t.me/+jXI2qDR9Y-xkZTI6)
+
+**Не** открывать `https://t.me/${BOT_USERNAME}` — это чат с ботом, не support.
 
 На бэкенде задаётся в `.env`:
 
@@ -19,27 +12,14 @@
 TELEGRAM_SUPPORT_INVITE_URL=https://t.me/+jXI2qDR9Y-xkZTI6
 ```
 
+Реализация во фронте: `tgapp_front/src/lib/openSupport.js`, кнопка в `App.jsx` → `handleSupportClick`.
+
 ## API (опционально)
->>>>>>> 3489ac71c17ae6e070eec77e5b2b0b383107f257
 
 ```http
 GET /v1/app/links
 ```
 
-<<<<<<< HEAD
-```json
-{ "support_chat_url": "https://t.me/+jXI2qDR9Y-xkZTI6", "bot_username": "CyberMate_bot" }
-```
-
-```ts
-export function openSupport() {
-  const tg = window.Telegram?.WebApp;
-  const url = "https://t.me/+jXI2qDR9Y-xkZTI6";
-  if (tg?.openTelegramLink) tg.openTelegramLink(url);
-  else window.open(url, "_blank");
-}
-```
-=======
 Ответ:
 
 ```json
@@ -83,4 +63,3 @@ tg.openTelegramLink(support_chat_url);
   Support
 </button>
 ```
->>>>>>> 3489ac71c17ae6e070eec77e5b2b0b383107f257

@@ -80,14 +80,9 @@ func (s *service) GetUserByTelegramId(ctx context.Context, req *api.GetUserByTel
 	return &api.GetUserResponse{Data: &api.User{
 		Id:      out.Data.ID,
 		Name:    out.Data.Name,
-<<<<<<< HEAD
-        Surname: "",
-		Theme:   out.Data.Theme,
-    }}, nil
-=======
 		Surname: "",
+		Theme:   out.Data.Theme,
 	}}, nil
->>>>>>> 3489ac71c17ae6e070eec77e5b2b0b383107f257
 }
 
 func (s *service) UpdateProfileTheme(ctx context.Context, req *api.UpdateProfileThemeRequest) (*api.UpdateProfileThemeResponse, error) {
