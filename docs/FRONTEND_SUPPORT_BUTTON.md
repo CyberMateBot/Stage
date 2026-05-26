@@ -13,7 +13,13 @@ TELEGRAM_SUPPORT_INVITE_URL=https://t.me/+jXI2qDR9Y-xkZTI6
 TELEGRAM_BOT_USERNAME=CyberMate_bot
 ```
 
+<<<<<<< HEAD
 ## API
+=======
+Реализация во фронте: `tgapp_front/src/lib/openSupport.js`, кнопка в `App.jsx` → `handleSupportClick`.
+
+## API (опционально)
+>>>>>>> c6b228cc8ba7fd9eaf6535effaa3c829367efd64
 
 ```http
 GET /v1/app/links
@@ -75,3 +81,14 @@ const referralLink = referral_link_base + telegramUserId;
 При регистрации `start_param` в `POST /v1/register` должен содержать `telegram_id` пригласившего.
 
 **Важно:** в Telegram Mini App используйте `openTelegramLink`, а не обычный `<a target="_blank">` — иначе ссылка может не открыться внутри клиента Telegram.
+<<<<<<< HEAD
+=======
+
+## React-пример
+
+```tsx
+<button type="button" onClick={openSupport}>
+  Support
+</button>
+```
+>>>>>>> c6b228cc8ba7fd9eaf6535effaa3c829367efd64
