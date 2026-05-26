@@ -186,35 +186,37 @@ func LoadServerConfig() ConfigServer {
 }
 
 func LoadPostgresConfig() ConfigPostgres {
-	// Поддержка PG_PASS и PG_PASSWORD (как указано в README)
-	// Значение по умолчанию "postgres" соответствует настройкам Docker-контейнера
-	pass := getenv("PG_PASS", "")
-	if pass == "" {
-		pass = getenv("PG_PASSWORD", "")
-	}
-	// Если ни одна переменная не установлена, используем значение по умолчанию
-	if pass == "" {
-		pass = "postgres"
+	var cfg ConfigPostgres
+
+	if raw := os.Getenv("DATABASE_URL"); raw != "" {
+		if parsed, ok := postgresFromDatabaseURL(raw); ok {
+			cfg = parsed
+		}
 	}
 
-	return ConfigPostgres{
-		Host:           getenv("PG_HOST", "localhost"),
-		Port:           getenv("PG_PORT", "5432"),
-		User:           getenv("PG_USER", "postgres"),
-		Pass:           pass,
-		DBName:         getenv("PG_DBNAME", "postgres"),
-		SSLMode:        getenv("PG_SSLMODE", "disable"),
-		SSLRootCert:    getenv("PG_SSLROOTCERT", ""),
-		Debug:          getenvBool("PG_DEBUG", false),
-		DriverLogLevel: getenv("PG_DRIVER_LOG_LEVEL", "info"),
+	cfg = mergePostgresFromEnv(cfg)
+	cfg = applyPostgresDefaults(cfg)
 
-		PoolStatPeriod:        getenvDuration("PG_POOL_STAT_PERIOD", 30*time.Second),
-		PoolMaxConns:          getenvInt64("PG_POOL_MAX_CONNS", 10),
-		PoolMinConns:          getenvInt64("PG_POOL_MIN_CONNS", 1),
-		PoolMaxConnLifeTime:   getenvDuration("PG_POOL_MAX_CONN_LIFETIME", time.Hour),
-		PoolMaxConnIdleTime:   getenvDuration("PG_POOL_MAX_CONN_IDLE_TIME", 30*time.Minute),
-		PoolHealthCheckPeriod: getenvDuration("PG_POOL_HEALTH_CHECK_PERIOD", time.Minute),
+	if v := os.Getenv("PG_SSLMODE"); v != "" {
+		cfg.SSLMode = v
 	}
+
+	cfg.Debug = getenvBool("PG_DEBUG", cfg.Debug)
+	if v := os.Getenv("PG_DRIVER_LOG_LEVEL"); v != "" {
+		cfg.DriverLogLevel = v
+	}
+	if v := os.Getenv("PG_SSLROOTCERT"); v != "" {
+		cfg.SSLRootCert = v
+	}
+
+	cfg.PoolStatPeriod = getenvDuration("PG_POOL_STAT_PERIOD", cfg.PoolStatPeriod)
+	cfg.PoolMaxConns = getenvInt64("PG_POOL_MAX_CONNS", cfg.PoolMaxConns)
+	cfg.PoolMinConns = getenvInt64("PG_POOL_MIN_CONNS", cfg.PoolMinConns)
+	cfg.PoolMaxConnLifeTime = getenvDuration("PG_POOL_MAX_CONN_LIFETIME", cfg.PoolMaxConnLifeTime)
+	cfg.PoolMaxConnIdleTime = getenvDuration("PG_POOL_MAX_CONN_IDLE_TIME", cfg.PoolMaxConnIdleTime)
+	cfg.PoolHealthCheckPeriod = getenvDuration("PG_POOL_HEALTH_CHECK_PERIOD", cfg.PoolHealthCheckPeriod)
+
+	return cfg
 }
 
 func LoadJWTConfig() ConfigJWT {
