@@ -11,7 +11,8 @@ $migrations = @(
     "V20250805000000__users.sql",
     "V20251103000100__cybermate_core.sql",
     "V20251103000200__admin_resources.sql",
-    "V20250525000000__profile_ui_theme.sql"
+    "V20250525000000__profile_ui_theme.sql",
+    "V20260527000000__prompt_history.sql"
 )
 
 foreach ($f in $migrations) {

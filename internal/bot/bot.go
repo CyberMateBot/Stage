@@ -2,15 +2,22 @@ package bot
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"log/slog"
+	"net/http"
 	"os"
 	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-const startWelcomeText = "⚡️ CyberMate\n\n👇 Нажимай кнопку ниже и начинай создавать"
+const (
+	startWelcomeText = "⚡️ CyberMate\n\n👇 Нажимай на кнопку ниже и начинай создавать!"
+	webhookPath      = "/v1/telegram/webhook"
+	openAppButton    = "🚀 Открыть CyberMate"
+)
 
 type Bot struct {
 	api *tgbotapi.BotAPI
@@ -41,6 +48,10 @@ func New() (*Bot, error) {
 
 	slog.Info("telegram bot connected", slog.String("username", "@"+api.Self.UserName))
 	return &Bot{api: api}, nil
+}
+
+func (b *Bot) Active() bool {
+	return b != nil && b.api != nil
 }
 
 func botEnabled() bool {
@@ -88,7 +99,65 @@ func (b *Bot) PreparePolling(ctx context.Context) error {
 	return nil
 }
 
-// StartPolling starts handling /start command.
+// SetWebhook registers Telegram webhook URL (e.g. https://api.example.com/v1/telegram/webhook).
+func (b *Bot) SetWebhook(ctx context.Context, webhookURL string) error {
+	if b.api == nil {
+		return nil
+	}
+	webhookURL = strings.TrimSpace(webhookURL)
+	if webhookURL == "" {
+		return nil
+	}
+
+	cfg, err := tgbotapi.NewWebhook(webhookURL)
+	if err != nil {
+		return err
+	}
+	if _, err := b.api.Request(cfg); err != nil {
+		slog.ErrorContext(ctx, "failed to set telegram webhook", slog.String("url", webhookURL), slog.Any("error", err))
+		return err
+	}
+	slog.InfoContext(ctx, "telegram webhook configured", slog.String("url", webhookURL))
+	return nil
+}
+
+// HTTPWrap handles POST /v1/telegram/webhook for /start and other bot updates.
+func HTTPWrap(next http.Handler, b *Bot) http.Handler {
+	if b == nil || !b.Active() {
+		return next
+	}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost && r.URL.Path == webhookPath {
+			b.serveWebhook(w, r)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (b *Bot) serveWebhook(w http.ResponseWriter, r *http.Request) {
+	if b.api == nil {
+		http.Error(w, "bot not configured", http.StatusServiceUnavailable)
+		return
+	}
+
+	body, err := io.ReadAll(io.LimitReader(r.Body, 1<<20))
+	if err != nil {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	var upd tgbotapi.Update
+	if err := json.Unmarshal(body, &upd); err != nil {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	b.handleUpdate(r.Context(), upd)
+	w.WriteHeader(http.StatusOK)
+}
+
+// StartPolling starts handling /start command via long polling.
 func (b *Bot) StartPolling(ctx context.Context) {
 	if b.api == nil {
 		return
@@ -101,14 +170,39 @@ func (b *Bot) StartPolling(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case upd := <-updates:
-			if upd.Message != nil && upd.Message.IsCommand() && upd.Message.Command() == "start" {
-				msg := tgbotapi.NewMessage(upd.Message.Chat.ID, startWelcomeText)
-				if _, err := b.api.Send(msg); err != nil {
-					slog.ErrorContext(ctx, "failed to send telegram message", slog.Any("error", err))
-				}
-			}
+			b.handleUpdate(ctx, upd)
 		}
 	}
+}
+
+func (b *Bot) handleUpdate(ctx context.Context, upd tgbotapi.Update) {
+	if upd.Message == nil || !upd.Message.IsCommand() || upd.Message.Command() != "start" {
+		return
+	}
+	if err := b.sendStartWelcome(upd.Message.Chat.ID); err != nil {
+		slog.ErrorContext(ctx, "failed to send telegram start message", slog.Any("error", err))
+	}
+}
+
+func (b *Bot) sendStartWelcome(chatID int64) error {
+	msg := tgbotapi.NewMessage(chatID, startWelcomeText)
+	if btnURL := miniAppOpenURL(); btnURL != "" {
+		btn := tgbotapi.NewInlineKeyboardButtonURL(openAppButton, btnURL)
+		msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(tgbotapi.NewInlineKeyboardRow(btn))
+	}
+	_, err := b.api.Send(msg)
+	return err
+}
+
+func miniAppOpenURL() string {
+	if u := strings.TrimSpace(os.Getenv("TELEGRAM_MINI_APP_URL")); u != "" {
+		return u
+	}
+	username := strings.TrimPrefix(strings.TrimSpace(os.Getenv("TELEGRAM_BOT_USERNAME")), "@")
+	if username == "" {
+		return ""
+	}
+	return "https://t.me/" + username + "?startapp"
 }
 
 // SendMessage sends a text with optional inline buttons.

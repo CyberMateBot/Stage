@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log/slog"
+	"os"
 
 	"github.com/twelvepills-936/tgapp-/internal/bot"
 	"github.com/twelvepills-936/tgapp-/internal/repository"
@@ -17,6 +18,7 @@ import (
 	"github.com/twelvepills-936/tgapp-/pkg/cors"
 	"github.com/twelvepills-936/tgapp-/pkg/generate"
 	"github.com/twelvepills-936/tgapp-/pkg/health"
+	"github.com/twelvepills-936/tgapp-/pkg/prompthistory"
 	"github.com/twelvepills-936/tgapp-/pkg/logger"
 	"github.com/twelvepills-936/tgapp-/pkg/swagger"
 )
@@ -41,11 +43,17 @@ func main() {
 	tgBot, err := bot.New()
 	if err != nil {
 		slog.WarnContext(ctx, "failed to init bot", logger.ErrorAttr(err))
-	} else if tgBot != nil && bot.BotPollingEnabled() {
-		if err := tgBot.PreparePolling(ctx); err != nil {
-			slog.WarnContext(ctx, "telegram polling disabled", logger.ErrorAttr(err))
-		} else {
-			go tgBot.StartPolling(ctx)
+	} else if tgBot != nil && tgBot.Active() {
+		if bot.BotPollingEnabled() {
+			if err := tgBot.PreparePolling(ctx); err != nil {
+				slog.WarnContext(ctx, "telegram polling disabled", logger.ErrorAttr(err))
+			} else {
+				go tgBot.StartPolling(ctx)
+			}
+		} else if webhookURL := os.Getenv("TELEGRAM_WEBHOOK_URL"); webhookURL != "" {
+			if err := tgBot.SetWebhook(ctx, webhookURL); err != nil {
+				slog.WarnContext(ctx, "telegram webhook not configured", logger.ErrorAttr(err))
+			}
 		}
 	}
 
@@ -83,19 +91,24 @@ func main() {
 	}
 
 	aiSvc := ai.NewService(config.LoadAIConfig())
+	promptHistory := prompthistory.NewStore(pool)
 
-	httpHandler := cors.Wrap(
+	httpHandler := bot.HTTPWrap(cors.Wrap(
 		health.Wrap(
 			generate.Wrap(
-				applinks.Wrap(
-					swagger.Wrap(application.ServeMux, addConfig.App.SwaggerEnabled),
-					addConfig.App,
+				prompthistory.Wrap(
+					applinks.Wrap(
+						swagger.Wrap(application.ServeMux, addConfig.App.SwaggerEnabled),
+						addConfig.App,
+					),
+					promptHistory,
 				),
 				aiSvc,
+				promptHistory,
 			),
 		),
 		addConfig.CORS,
-	)
+	), tgBot)
 	application.SetHTTPHandler(httpHandler)
 
 	err = application.Run(ctx)

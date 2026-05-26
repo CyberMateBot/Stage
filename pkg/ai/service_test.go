@@ -6,7 +6,7 @@ import (
 
 func TestNormalizeTextInput(t *testing.T) {
 	_, msgs, err := normalizeTextInput(TextRequest{Prompt: "hi"})
-	if err != nil || len(msgs) != 1 || msgs[0].Content != "hi" {
+	if err != nil || len(msgs) != 2 || msgs[0].Role != "system" || msgs[1].Content != "hi" {
 		t.Fatalf("unexpected: msgs=%v err=%v", msgs, err)
 	}
 

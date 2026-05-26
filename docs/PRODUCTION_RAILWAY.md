@@ -54,8 +54,15 @@ TELEGRAM_BOT_POLLING=false
 SWAGGER_ENABLED=false
 ```
 
-`TELEGRAM_BOT_POLLING=false` — по умолчанию. Иначе конфликт с webhook (`can't use getUpdates while webhook is active`).
-Если нужен long polling на Railway: `TELEGRAM_BOT_POLLING=true` (webhook будет снят при старте).
+`TELEGRAM_BOT_POLLING=false` — по умолчанию. Для `/start` задайте webhook на этот бэкенд:
+
+`TELEGRAM_WEBHOOK_URL=https://YOUR-BACKEND.up.railway.app/v1/telegram/webhook`
+
+При старте сервис вызовет `setWebhook`. Сообщение `/start`: «⚡️ CyberMate…» + кнопка «Открыть CyberMate».
+
+Локально: `TELEGRAM_BOT_POLLING=true` (webhook снимается при старте).
+
+Если `/start` всё ещё со старым текстом — в BotFather или на другом сервере остался старый webhook; укажите `TELEGRAM_WEBHOOK_URL` на текущий бэкенд.
 
 ---
 

@@ -6,23 +6,30 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"strings"
+
 	"github.com/twelvepills-936/tgapp-/pkg/ai"
+	"github.com/twelvepills-936/tgapp-/pkg/prompthistory"
 )
 
 const (
-	pathGenerateText  = "/v1/generate/text"
-	pathGenerateImage = "/v1/generate/image"
+	pathGenerateModels = "/v1/generate/models"
+	pathGenerateText   = "/v1/generate/text"
+	pathGenerateImage  = "/v1/generate/image"
 )
 
 // Wrap adds POST /v1/generate/text and POST /v1/generate/image.
-func Wrap(next http.Handler, svc *ai.Service) http.Handler {
+func Wrap(next http.Handler, svc *ai.Service, history *prompthistory.Store) http.Handler {
 	if svc == nil {
 		return next
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch {
+		case r.Method == http.MethodGet && r.URL.Path == pathGenerateModels:
+			writeJSON(w, http.StatusOK, svc.ListModels())
+			return
 		case r.Method == http.MethodPost && r.URL.Path == pathGenerateText:
-			handleText(w, r, svc)
+			handleText(w, r, svc, history)
 			return
 		case r.Method == http.MethodPost && r.URL.Path == pathGenerateImage:
 			handleImage(w, r, svc)
@@ -32,20 +39,64 @@ func Wrap(next http.Handler, svc *ai.Service) http.Handler {
 	})
 }
 
-func handleText(w http.ResponseWriter, r *http.Request, svc *ai.Service) {
-	var req ai.TextRequest
+type textGenerateRequest struct {
+	ai.TextRequest
+	TelegramID string `json:"telegramId"`
+	SessionID  string `json:"sessionId"`
+	Category   string `json:"category"`
+}
+
+type textGenerateResponse struct {
+	Text   string              `json:"text"`
+	Model  string              `json:"model"`
+	Format string              `json:"format,omitempty"`
+	Item   *prompthistory.Item `json:"item,omitempty"`
+}
+
+func handleText(w http.ResponseWriter, r *http.Request, svc *ai.Service, history *prompthistory.Store) {
+	var req textGenerateRequest
 	if err := decodeJSON(r, &req); err != nil {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	out, err := svc.GenerateText(r.Context(), req)
+	out, err := svc.GenerateText(r.Context(), req.TextRequest)
 	if err != nil {
 		writeServiceError(w, r, "generate text", err)
 		return
 	}
 
-	writeJSON(w, http.StatusOK, out)
+	resp := textGenerateResponse{
+		Text:   out.Text,
+		Model:  out.Model,
+		Format: out.Format,
+	}
+
+	if history != nil {
+		prompt := strings.TrimSpace(req.Prompt)
+		if prompt == "" {
+			prompt = strings.TrimSpace(req.Text)
+		}
+		category := strings.TrimSpace(req.Category)
+		if category == "" {
+			category = "text"
+		}
+		if item, saveErr := history.SaveAfterGenerate(
+			r.Context(),
+			req.TelegramID,
+			prompt,
+			out.Text,
+			category,
+			req.Model,
+			req.SessionID,
+		); saveErr != nil {
+			slog.WarnContext(r.Context(), "failed to save prompt history after text generation", slog.Any("error", saveErr))
+		} else if item != nil {
+			resp.Item = item
+		}
+	}
+
+	writeJSON(w, http.StatusOK, resp)
 }
 
 func handleImage(w http.ResponseWriter, r *http.Request, svc *ai.Service) {

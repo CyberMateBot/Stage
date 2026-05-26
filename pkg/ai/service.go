@@ -26,8 +26,14 @@ type ChatMessage struct {
 
 // TextResponse is returned by POST /v1/generate/text.
 type TextResponse struct {
-	Text  string `json:"text"`
-	Model string `json:"model"`
+	Text   string `json:"text"`
+	Model  string `json:"model"`
+	Format string `json:"format"` // markdown — render with Markdown + LaTeX ($...$) on frontend
+}
+
+// ModelsResponse is returned by GET /v1/generate/models.
+type ModelsResponse struct {
+	TextModels []TextModel `json:"text_models"`
 }
 
 // ImageRequest is the body for POST /v1/generate/image.
@@ -55,6 +61,10 @@ func NewService(cfg config.ConfigAI) *Service {
 	return &Service{cfg: cfg}
 }
 
+func (s *Service) ListModels() ModelsResponse {
+	return ModelsResponse{TextModels: ListTextModels()}
+}
+
 func (s *Service) GenerateText(ctx context.Context, req TextRequest) (TextResponse, error) {
 	prompt, messages, err := normalizeTextInput(req)
 	if err != nil {
@@ -63,14 +73,6 @@ func (s *Service) GenerateText(ctx context.Context, req TextRequest) (TextRespon
 
 	provider := strings.ToLower(strings.TrimSpace(req.Model))
 	switch provider {
-	case "", "yandex", "yandexgpt", "default":
-		if s.cfg.YandexTextEnabled() {
-			return generateYandexText(ctx, s.cfg, messages, prompt, s.cfg.YandexGPTModel, req)
-		}
-	case "deepseek":
-		if s.cfg.YandexTextEnabled() {
-			return generateYandexText(ctx, s.cfg, messages, prompt, s.cfg.YandexDeepSeek, req)
-		}
 	case "openai", "gpt":
 		if s.cfg.OpenAITextEnabled() {
 			return generateOpenAICompatText(ctx, s.cfg, "https://api.openai.com/v1", s.cfg.OpenAITextModel, messages, prompt, req)
@@ -79,17 +81,24 @@ func (s *Service) GenerateText(ctx context.Context, req TextRequest) (TextRespon
 		if s.cfg.WavespeedTextEnabled() {
 			return generateOpenAICompatText(ctx, s.cfg, s.cfg.GeminiAPIBaseURL, s.cfg.GeminiModel, messages, prompt, req)
 		}
-	default:
-		// allow passing full model slug for Yandex, e.g. yandexgpt/latest
-		if s.cfg.YandexTextEnabled() {
-			return generateYandexText(ctx, s.cfg, messages, prompt, provider, req)
-		}
 	}
 
-	// Fallback chain
 	if s.cfg.YandexTextEnabled() {
-		return generateYandexText(ctx, s.cfg, messages, prompt, s.cfg.YandexGPTModel, req)
+		def, ok := resolveTextModel(req.Model, s.cfg.YandexGPTModel)
+		if !ok {
+			// unknown slug — try completion API with raw model name
+			return generateYandexText(ctx, s.cfg, messages, prompt, req.Model, req)
+		}
+		if def.UseResponses {
+			return generateYandexResponsesText(ctx, s.cfg, messages, def.Slug, req)
+		}
+		slug := def.Slug
+		if slug == "" {
+			slug = s.cfg.YandexGPTModel
+		}
+		return generateYandexText(ctx, s.cfg, messages, prompt, slug, req)
 	}
+
 	if s.cfg.OpenAITextEnabled() {
 		return generateOpenAICompatText(ctx, s.cfg, "https://api.openai.com/v1", s.cfg.OpenAITextModel, messages, prompt, req)
 	}
@@ -151,6 +160,12 @@ func normalizeTextInput(req TextRequest) (prompt string, messages []ChatMessage,
 
 	if strings.TrimSpace(req.System) != "" {
 		messages = append([]ChatMessage{{Role: "system", Content: req.System}}, messages...)
+	}
+
+	if len(messages) > 0 && messages[0].Role == "system" {
+		messages[0].Content = mergeInstructions(messages[0].Content)
+	} else {
+		messages = append([]ChatMessage{{Role: "system", Content: mergeInstructions("")}}, messages...)
 	}
 
 	for i := range messages {

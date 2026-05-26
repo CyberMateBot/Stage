@@ -82,10 +82,7 @@ func generateYandexText(
 		return TextResponse{}, &ProviderError{Provider: "yandex", Message: "empty completion"}
 	}
 
-	return TextResponse{
-		Text:  resp.Result.Alternatives[0].Message.Text,
-		Model: modelSlug,
-	}, nil
+	return finalizeTextResponse(resp.Result.Alternatives[0].Message.Text, modelSlug), nil
 }
 
 func yandexModelURI(folderID, model string) string {

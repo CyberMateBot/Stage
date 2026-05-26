@@ -75,10 +75,7 @@ func generateOpenAICompatText(
 		return TextResponse{}, &ProviderError{Provider: modelProviderName(baseURL), Message: "empty completion"}
 	}
 
-	return TextResponse{
-		Text:  resp.Choices[0].Message.Content,
-		Model: model,
-	}, nil
+	return finalizeTextResponse(resp.Choices[0].Message.Content, model), nil
 }
 
 func modelProviderName(baseURL string) string {
