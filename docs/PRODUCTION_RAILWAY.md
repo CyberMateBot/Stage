@@ -49,9 +49,13 @@ CORS_ALLOWED_ORIGINS=https://ваш-фронт.vercel.app,https://web.telegram.o
 
 ```env
 TELEGRAM_BOT_USERNAME=CyberMate_bot
-TELEGRAM_BOT_ENABLED=false
+TELEGRAM_BOT_ENABLED=true
+TELEGRAM_BOT_POLLING=false
 SWAGGER_ENABLED=false
 ```
+
+`TELEGRAM_BOT_POLLING=false` — по умолчанию. Иначе конфликт с webhook (`can't use getUpdates while webhook is active`).
+Если нужен long polling на Railway: `TELEGRAM_BOT_POLLING=true` (webhook будет снят при старте).
 
 ---
 

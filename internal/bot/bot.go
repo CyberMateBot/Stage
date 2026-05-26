@@ -56,6 +56,38 @@ func botEnabled() bool {
 	}
 }
 
+func botPollingEnabled() bool {
+	v := strings.TrimSpace(os.Getenv("TELEGRAM_BOT_POLLING"))
+	if v == "" {
+		return false
+	}
+	switch strings.ToLower(v) {
+	case "1", "true", "yes", "on":
+		return true
+	default:
+		return false
+	}
+}
+
+// BotPollingEnabled reports whether long-polling should run (off by default on Railway).
+func BotPollingEnabled() bool {
+	return botPollingEnabled()
+}
+
+// PreparePolling removes an active Telegram webhook so getUpdates can work.
+func (b *Bot) PreparePolling(ctx context.Context) error {
+	if b.api == nil {
+		return nil
+	}
+	_, err := b.api.Request(tgbotapi.DeleteWebhookConfig{DropPendingUpdates: false})
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to delete telegram webhook before polling", slog.Any("error", err))
+		return err
+	}
+	slog.InfoContext(ctx, "telegram webhook removed, long polling enabled")
+	return nil
+}
+
 // StartPolling starts handling /start command.
 func (b *Bot) StartPolling(ctx context.Context) {
 	if b.api == nil {

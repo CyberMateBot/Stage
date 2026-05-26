@@ -31,12 +31,20 @@ func main() {
 	}
 
 	addConfig := config.LoadConfig()
+	slog.InfoContext(ctx, "cors configured",
+		slog.Bool("allow_all", config.CORSAllowsAll(addConfig.CORS.AllowedOrigins)),
+		slog.Int("origins_count", len(addConfig.CORS.AllowedOrigins)),
+	)
 
 	tgBot, err := bot.New()
 	if err != nil {
 		slog.WarnContext(ctx, "failed to init bot", logger.ErrorAttr(err))
-	} else if tgBot != nil {
-		go tgBot.StartPolling(ctx)
+	} else if tgBot != nil && bot.BotPollingEnabled() {
+		if err := tgBot.PreparePolling(ctx); err != nil {
+			slog.WarnContext(ctx, "telegram polling disabled", logger.ErrorAttr(err))
+		} else {
+			go tgBot.StartPolling(ctx)
+		}
 	}
 
 	pool, err := repository.NewPostgres(ctx, repoModels.ConfigPostgres(addConfig.Postgres))

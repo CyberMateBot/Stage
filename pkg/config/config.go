@@ -126,12 +126,22 @@ func getenvDuration(key string, def time.Duration) time.Duration {
 	return def
 }
 
+func trimEnvQuotes(s string) string {
+	s = strings.TrimSpace(s)
+	if len(s) >= 2 {
+		if (s[0] == '"' && s[len(s)-1] == '"') || (s[0] == '\'' && s[len(s)-1] == '\'') {
+			return strings.TrimSpace(s[1 : len(s)-1])
+		}
+	}
+	return s
+}
+
 func getenvStringSlice(key string, def []string) []string {
 	if v := os.Getenv(key); v != "" {
 		parts := strings.Split(v, ",")
 		result := make([]string, 0, len(parts))
 		for _, p := range parts {
-			if s := strings.TrimSpace(p); s != "" {
+			if s := trimEnvQuotes(p); s != "" {
 				result = append(result, s)
 			}
 		}
@@ -140,6 +150,16 @@ func getenvStringSlice(key string, def []string) []string {
 		}
 	}
 	return def
+}
+
+// CORSAllowsAll reports whether any configured origin is a wildcard.
+func CORSAllowsAll(origins []string) bool {
+	for _, o := range origins {
+		if strings.TrimSpace(o) == "*" {
+			return true
+		}
+	}
+	return false
 }
 
 func LoadConfig() Config {
@@ -237,8 +257,12 @@ func LoadRedisConfig() ConfigRedis {
 }
 
 func LoadCORSConfig() ConfigCORS {
+	defaultOrigins := []string{"http://localhost:3000", "http://localhost:5173"}
+	if strings.EqualFold(getenv("ENVIRONMENT", ""), "production") {
+		defaultOrigins = []string{"*"}
+	}
 	return ConfigCORS{
-		AllowedOrigins: getenvStringSlice("CORS_ALLOWED_ORIGINS", []string{"http://localhost:3000", "http://localhost:5173"}),
+		AllowedOrigins: getenvStringSlice("CORS_ALLOWED_ORIGINS", defaultOrigins),
 		AllowedMethods: getenvStringSlice("CORS_ALLOWED_METHODS", []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"}),
 		AllowedHeaders: getenvStringSlice("CORS_ALLOWED_HEADERS", []string{
 			"Content-Type", "Authorization", "Accept", "X-Requested-With",
