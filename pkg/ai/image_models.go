@@ -19,13 +19,19 @@ func resolveImageModelSlug(requested string, defaultSlug string) string {
 
 func normalizeArtSlug(slug string) string {
 	slug = strings.TrimSpace(slug)
-	if strings.HasPrefix(slug, "art://") {
-		rest := strings.TrimPrefix(slug, "art://")
-		if i := strings.Index(rest, "/"); i >= 0 {
-			slug = rest[i+1:]
-		} else {
-			slug = rest
+	slug = strings.TrimPrefix(slug, "art://")
+	slug = strings.TrimPrefix(slug, "gpt://")
+	slug = strings.TrimSuffix(slug, "/latest")
+	if slug == "" {
+		return ""
+	}
+	// art://<folder>/<model> or <folder>/<model> → model is the last segment
+	if strings.Contains(slug, "/") {
+		parts := strings.Split(slug, "/")
+		slug = parts[len(parts)-1]
+		if slug == "latest" && len(parts) > 1 {
+			slug = parts[len(parts)-2]
 		}
 	}
-	return strings.TrimSuffix(slug, "/latest")
+	return slug
 }

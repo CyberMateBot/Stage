@@ -14,6 +14,8 @@ func TestResolveImageModelSlug(t *testing.T) {
 		{"", "aliceai-image-art-3.0"},
 		{"yandex-art-2.0", "yandex-art-2.0"},
 		{"aliceai-image-art-3.0/latest", "aliceai-image-art-3.0"},
+		{"art://aliceai-image-art-3.0/latest", "aliceai-image-art-3.0"},
+		{"art://b1gfolder/aliceai-image-art-3.0", "aliceai-image-art-3.0"},
 	}
 
 	for _, tc := range tests {

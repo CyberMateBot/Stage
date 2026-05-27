@@ -80,9 +80,10 @@ func (s *Service) GenerateText(ctx context.Context, req TextRequest) (TextRespon
 			return generateOpenAICompatText(ctx, s.cfg, "https://api.openai.com/v1", s.cfg.OpenAITextModel, messages, prompt, req)
 		}
 	case "gemini", "wavespeed":
-		if s.cfg.WavespeedTextEnabled() {
-			return generateOpenAICompatText(ctx, s.cfg, s.cfg.GeminiAPIBaseURL, s.cfg.GeminiModel, messages, prompt, req)
+		if !s.cfg.WavespeedTextEnabled() {
+			return TextResponse{}, ErrNotConfigured
 		}
+		return generateOpenAICompatText(ctx, s.cfg, s.cfg.GeminiAPIBaseURL, s.cfg.GeminiModel, messages, prompt, req)
 	}
 
 	if s.cfg.YandexTextEnabled() {
@@ -133,7 +134,13 @@ func (s *Service) GenerateImage(ctx context.Context, req ImageRequest) (ImageRes
 			Provider: "wavespeed",
 			Message:  "nano-banana requires WAVESPEED_API_KEY on the server",
 		}
-	case "", "yandex", "alice", "alice-ai-art", "yandex-art", "yandex-art-2.0", "default":
+	case "alice-ai-art":
+		// Alice AI ART is served via Yandex AI Studio OpenAI-compatible Images API.
+		if s.cfg.YandexTextEnabled() {
+			return generateYandexOpenAIImage(ctx, s.cfg, prompt, req)
+		}
+		return ImageResponse{}, ErrNotConfigured
+	case "", "yandex", "alice", "yandex-art", "yandex-art-2.0", "default":
 		if s.cfg.YandexTextEnabled() {
 			return generateYandexImage(ctx, s.cfg, prompt, req)
 		}

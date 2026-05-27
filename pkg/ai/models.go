@@ -38,6 +38,11 @@ var textModelCatalog = []textModelDef{
 		Tier: "pro", Slug: "deepseek-v32", UseOpenAIChat: true,
 	},
 	{
+		ID: "gemini", Label: "Gemini Flash", Group: "Gemini",
+		Description: "Мультимодальные ответы: текст и фото",
+		Tier: "pro", Slug: "gemini", SupportsImage: true,
+	},
+	{
 		ID: "gpt-oss-20b", Label: "GPT OSS 20B", Group: "Open-weight GPT",
 		Description: "Черновики, короткие ответы и быстрые правки текста",
 		Tier: "fast", Slug: "gpt-oss-20b/latest", UseResponses: true,

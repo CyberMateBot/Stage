@@ -112,7 +112,7 @@ func handleImage(w http.ResponseWriter, r *http.Request, svc *ai.Service) {
 		return
 	}
 
-	writeJSON(w, http.StatusOK, out)
+	writeJSON(w, http.StatusOK, ai.FinalizeImageResponse(out))
 }
 
 func decodeJSON(r *http.Request, dst any) error {

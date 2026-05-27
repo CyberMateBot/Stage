@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strings"
 	"time"
@@ -12,39 +13,71 @@ import (
 )
 
 const (
-	yandexImageAsyncURL = "https://ai.api.cloud.yandex.net/foundationModels/v1/imageGenerationAsync"
+	// YandexART ImageGenerationAsync REST endpoint
+	yandexImageAsyncURL = "https://llm.api.cloud.yandex.net/foundationModels/v1/imageGenerationAsync"
 	yandexOperationsURL = "https://operation.api.cloud.yandex.net/operations"
 )
 
 func generateYandexImage(ctx context.Context, cfg config.ConfigAI, prompt string, req ImageRequest) (ImageResponse, error) {
+	folderID := strings.TrimSpace(cfg.YandexFolderID)
+	if folderID == "" {
+		return ImageResponse{}, &ProviderError{Provider: "yandex", Message: "YANDEX_GPT_FOLDER_ID is not configured"}
+	}
+
+	requestedModel := strings.ToLower(strings.TrimSpace(req.Model))
 	modelSlug := resolveImageModelSlug(req.Model, cfg.YandexImageModel)
 	size := strings.TrimSpace(req.Size)
 	if size == "" {
 		size = cfg.YandexImageSize
 	}
 
-	modelURI := yandexArtModelURI(cfg.YandexFolderID, modelSlug)
-	width, height := parseSizeRatio(size)
-
-	payload := map[string]any{
-		"modelUri": modelURI,
-		"generationOptions": map[string]any{
-			"aspectRatio": map[string]string{
-				"widthRatio":  width,
-				"heightRatio": height,
+	doRequest := func(slug string) ([]byte, int, error) {
+		modelURI := yandexArtModelURI(folderID, slug)
+		slog.InfoContext(ctx, "yandex image request",
+			slog.String("requested_model", strings.TrimSpace(req.Model)),
+			slog.String("resolved_slug", slug),
+			slog.String("model_uri", modelURI),
+			slog.String("size", size),
+		)
+		width, height := parseSizeRatio(size)
+		payload := map[string]any{
+			"modelUri": modelURI,
+			"generationOptions": map[string]any{
+				"aspectRatio": map[string]string{
+					"widthRatio":  width,
+					"heightRatio": height,
+				},
 			},
-		},
-		"messages": []map[string]any{
-			{"weight": "1", "text": prompt},
-		},
+			"messages": []map[string]any{
+				{"weight": "1", "text": prompt},
+			},
+		}
+		return doJSON(ctx, cfg.HTTPTimeout, http.MethodPost, yandexImageAsyncURL, yandexHeaders(cfg.YandexAPIKey), payload)
 	}
 
-	body, status, err := doJSON(ctx, cfg.HTTPTimeout, http.MethodPost, yandexImageAsyncURL, yandexHeaders(cfg.YandexAPIKey), payload)
+	body, status, err := doRequest(modelSlug)
 	if err != nil {
 		return ImageResponse{}, err
 	}
 	if status != http.StatusOK {
-		return ImageResponse{}, &ProviderError{Provider: "yandex", Status: status, Message: truncate(string(body), 500)}
+		msg := truncate(string(body), 500)
+	// For Alice AI ART the OpenAI-compatible Images API is used (see generateYandexOpenAIImage).
+	// Keep this fallback only for other YandexART slugs.
+	if status == http.StatusBadRequest &&
+		(requestedModel == "alice" || requestedModel == "alice-ai-art") &&
+		strings.Contains(msg, "not allowed") &&
+		strings.Contains(msg, "aliceai-image-art-3.0") {
+			slog.WarnContext(ctx, "alice ai art not allowed, falling back to yandex-art-2.0")
+			body, status, err = doRequest("yandex-art-2.0")
+			if err != nil {
+				return ImageResponse{}, err
+			}
+			if status != http.StatusOK {
+				return ImageResponse{}, &ProviderError{Provider: "yandex", Status: status, Message: truncate(string(body), 500)}
+			}
+		} else {
+			return ImageResponse{}, &ProviderError{Provider: "yandex", Status: status, Message: msg}
+		}
 	}
 
 	var op struct {
@@ -94,26 +127,18 @@ func generateYandexImage(ctx context.Context, cfg config.ConfigAI, prompt string
 		return ImageResponse{}, &ProviderError{Provider: "yandex", Message: "image generation timed out or empty response"}
 	}
 
-	return ImageResponse{
+	return FinalizeImageResponse(ImageResponse{
 		ImageBase64: op.Response.Image,
 		Model:       modelSlug,
-	}, nil
+	}), nil
 }
 
 func yandexArtModelURI(folderID, model string) string {
-	model = strings.TrimSpace(model)
-	if strings.HasPrefix(model, "art://") {
-		return model
-	}
-	if strings.HasPrefix(model, "gpt://") {
-		// some configs use gpt:// prefix for art models
-		return strings.Replace(model, "gpt://", "art://", 1)
-	}
+	model = normalizeArtSlug(model)
 	if model == "" {
 		model = "yandex-art-2.0"
 	}
-	model = normalizeArtSlug(model)
-	return fmt.Sprintf("art://%s/%s", folderID, model)
+	return fmt.Sprintf("art://%s/%s", strings.TrimSpace(folderID), model)
 }
 
 func parseSizeRatio(size string) (width, height string) {

@@ -22,12 +22,49 @@ func generateOpenAICompatText(
 	baseURL = strings.TrimRight(baseURL, "/")
 	url := baseURL + "/chat/completions"
 
-	oaiMessages := make([]map[string]string, 0, len(messages))
+	oaiMessages := make([]map[string]any, 0, len(messages)+1)
 	for _, m := range messages {
-		oaiMessages = append(oaiMessages, map[string]string{
+		oaiMessages = append(oaiMessages, map[string]any{
 			"role":    m.Role,
 			"content": m.Content,
 		})
+	}
+
+	if strings.TrimSpace(req.ImageBase64) != "" {
+		mime := strings.TrimSpace(req.ImageMimeType)
+		if mime == "" {
+			mime = "image/jpeg"
+		}
+		dataURL := "data:" + mime + ";base64," + strings.TrimSpace(req.ImageBase64)
+
+		// Attach the image to the last user message.
+		lastUser := -1
+		for i := len(oaiMessages) - 1; i >= 0; i-- {
+			if role, ok := oaiMessages[i]["role"].(string); ok && role == "user" {
+				lastUser = i
+				break
+			}
+		}
+		if lastUser >= 0 {
+			prev := oaiMessages[lastUser]
+			text := ""
+			if s, ok := prev["content"].(string); ok {
+				text = s
+			}
+			prev["content"] = []map[string]any{
+				{"type": "text", "text": text},
+				{"type": "image_url", "image_url": map[string]any{"url": dataURL}},
+			}
+			oaiMessages[lastUser] = prev
+		} else {
+			oaiMessages = append(oaiMessages, map[string]any{
+				"role": "user",
+				"content": []map[string]any{
+					{"type": "text", "text": strings.TrimSpace(req.Prompt)},
+					{"type": "image_url", "image_url": map[string]any{"url": dataURL}},
+				},
+			})
+		}
 	}
 
 	maxTokens := cfg.TextMaxOutputTokens
