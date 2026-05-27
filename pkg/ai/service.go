@@ -14,6 +14,8 @@ type TextRequest struct {
 	Model       string        `json:"model"`
 	System      string        `json:"system"`
 	Messages    []ChatMessage `json:"messages"`
+	ImageBase64 string        `json:"imageBase64"`
+	ImageMimeType string      `json:"imageMimeType"`
 	Temperature *float64      `json:"temperature"`
 	MaxTokens   *int          `json:"max_tokens"`
 }
@@ -89,6 +91,9 @@ func (s *Service) GenerateText(ctx context.Context, req TextRequest) (TextRespon
 			// unknown slug — try completion API with raw model name
 			return generateYandexText(ctx, s.cfg, messages, prompt, req.Model, req)
 		}
+		if def.UseOpenAIChat {
+			return generateYandexOpenAIChat(ctx, s.cfg, messages, def.Slug, req)
+		}
 		if def.UseResponses {
 			return generateYandexResponsesText(ctx, s.cfg, messages, def.Slug, req)
 		}
@@ -120,13 +125,17 @@ func (s *Service) GenerateImage(ctx context.Context, req ImageRequest) (ImageRes
 
 	provider := strings.ToLower(strings.TrimSpace(req.Model))
 	switch provider {
-	case "", "yandex", "alice", "yandex-art", "default":
-		if s.cfg.YandexTextEnabled() {
-			return generateYandexImage(ctx, s.cfg, prompt, req)
-		}
 	case "nano-banana", "wavespeed", "banana":
 		if s.cfg.WavespeedImageEnabled() {
 			return generateWavespeedImage(ctx, s.cfg, prompt, req)
+		}
+		return ImageResponse{}, &ProviderError{
+			Provider: "wavespeed",
+			Message:  "nano-banana requires WAVESPEED_API_KEY on the server",
+		}
+	case "", "yandex", "alice", "alice-ai-art", "yandex-art", "yandex-art-2.0", "default":
+		if s.cfg.YandexTextEnabled() {
+			return generateYandexImage(ctx, s.cfg, prompt, req)
 		}
 	default:
 		if s.cfg.YandexTextEnabled() {

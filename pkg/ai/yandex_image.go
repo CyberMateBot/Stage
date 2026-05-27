@@ -12,12 +12,12 @@ import (
 )
 
 const (
-	yandexImageAsyncURL = "https://llm.api.cloud.yandex.net/foundationModels/v1/imageGenerationAsync"
+	yandexImageAsyncURL = "https://ai.api.cloud.yandex.net/foundationModels/v1/imageGenerationAsync"
 	yandexOperationsURL = "https://operation.api.cloud.yandex.net/operations"
 )
 
 func generateYandexImage(ctx context.Context, cfg config.ConfigAI, prompt string, req ImageRequest) (ImageResponse, error) {
-	modelSlug := cfg.YandexImageModel
+	modelSlug := resolveImageModelSlug(req.Model, cfg.YandexImageModel)
 	size := strings.TrimSpace(req.Size)
 	if size == "" {
 		size = cfg.YandexImageSize
@@ -110,8 +110,9 @@ func yandexArtModelURI(folderID, model string) string {
 		return strings.Replace(model, "gpt://", "art://", 1)
 	}
 	if model == "" {
-		model = "yandex-art/latest"
+		model = "yandex-art-2.0"
 	}
+	model = normalizeArtSlug(model)
 	return fmt.Sprintf("art://%s/%s", folderID, model)
 }
 

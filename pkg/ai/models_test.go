@@ -8,6 +8,11 @@ func TestResolveTextModel(t *testing.T) {
 		t.Fatalf("gpt-oss-120b: %+v ok=%v", def, ok)
 	}
 
+	def, ok = resolveTextModel("deepseek", "")
+	if !ok || !def.UseOpenAIChat || def.Slug != "deepseek-v32" {
+		t.Fatalf("deepseek: %+v ok=%v", def, ok)
+	}
+
 	def, ok = resolveTextModel("yandexgpt", "")
 	if !ok || def.UseResponses {
 		t.Fatalf("yandexgpt: %+v", def)

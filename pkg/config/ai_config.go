@@ -44,7 +44,7 @@ func LoadAIConfig() ConfigAI {
 		YandexFolderID:   strings.TrimSpace(os.Getenv("YANDEX_GPT_FOLDER_ID")),
 		YandexGPTModel:   getenv("YANDEX_GPT_MODEL", "yandexgpt/latest"),
 		YandexDeepSeek:   getenv("YANDEX_DEEPSEEK_MODEL", "deepseek-v32/latest"),
-		YandexImageModel: getenv("YANDEX_ALICE_AI_ART_MODEL", "aliceai-image-art-3.0/latest"),
+		YandexImageModel: getenv("YANDEX_ALICE_AI_ART_MODEL", "aliceai-image-art-3.0"),
 		YandexImageSize:  getenv("YANDEX_IMAGE_SIZE", "1024x1024"),
 
 		OpenAIAPIKey:    strings.TrimSpace(os.Getenv("OPENAI_API_KEY")),

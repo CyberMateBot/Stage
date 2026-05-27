@@ -45,6 +45,18 @@ CORS_ALLOWED_ORIGINS=https://ваш-фронт.vercel.app,https://web.telegram.o
 
 Подставьте реальный домен, где открывается Mini App (Vercel / Netlify / GitHub Pages).
 
+### AI (генерация текста и изображений)
+
+```env
+YANDEX_GPT_API_KEY=...
+YANDEX_GPT_FOLDER_ID=...
+YANDEX_ALICE_AI_ART_MODEL=aliceai-image-art-3.0
+# Nano Banana — отдельный провайдер (без ключа модель не работает):
+WAVESPEED_API_KEY=...
+```
+
+DeepSeek и Alice AI ART идут через Yandex (`YANDEX_GPT_*`). **Nano Banana** требует `WAVESPEED_API_KEY` на Railway.
+
 ### Опционально
 
 ```env
@@ -110,6 +122,49 @@ grep -r "VITE_API" src/
 
 ---
 
+## Миграции Postgres на Railway
+
+Миграции **не применяются автоматически** при деплое. Выполните SQL в **Railway → Postgres → Query** (база `railway`).
+
+### Таблица `prompt_history` (история промптов)
+
+Симптом в логах:
+
+```text
+relation "prompt_history" does not exist (SQLSTATE 42P01)
+```
+
+Скопируйте и выполните (нужна уже существующая таблица `profiles`):
+
+```sql
+CREATE TABLE IF NOT EXISTS prompt_history (
+    id BIGSERIAL PRIMARY KEY,
+    profile_id BIGINT NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+    prompt TEXT NOT NULL,
+    category TEXT NOT NULL DEFAULT 'general',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    model TEXT NOT NULL DEFAULT '',
+    response TEXT NOT NULL DEFAULT '',
+    session_id TEXT NOT NULL DEFAULT ''
+);
+
+CREATE INDEX IF NOT EXISTS idx_prompt_history_profile_created_at
+    ON prompt_history (profile_id, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_prompt_history_profile_session
+    ON prompt_history (profile_id, session_id, created_at DESC);
+```
+
+Проверка:
+
+```sql
+SELECT COUNT(*) FROM prompt_history;
+```
+
+Файл миграции в репозитории: `internal/migrations/V20260527000000__prompt_history.sql`.
+
+---
+
 ## Логи Railway
 
 **Deployments → сервис API → View logs**
@@ -118,4 +173,5 @@ grep -r "VITE_API" src/
 |-----|----------|
 | `failed to init postgres` | Настроить `PG_HOST`, `PG_PASS`, `PG_DBNAME` |
 | `failed to serve HTTP` | Проверить `PORT` / перезапуск |
+| `relation "prompt_history" does not exist` | Выполнить SQL выше в Railway Postgres Query |
 | Сервис стартует и сразу exit | Часто БД; смотрите строку выше |

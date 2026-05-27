@@ -4,35 +4,38 @@ import "strings"
 
 // TextModel describes a selectable text generation model for the frontend.
 type TextModel struct {
-	ID          string `json:"id"`
-	Label       string `json:"label"`
-	Group       string `json:"group"`
-	Description string `json:"description,omitempty"`
-	Tier        string `json:"tier"` // fast | standard | pro
-	Provider    string `json:"provider"` // yandex
+	ID            string `json:"id"`
+	Label         string `json:"label"`
+	Group         string `json:"group"`
+	Description   string `json:"description,omitempty"`
+	Tier          string `json:"tier"` // fast | standard | pro
+	Provider      string `json:"provider"` // yandex
+	SupportsImage bool   `json:"supports_image,omitempty"`
 }
 
 type textModelDef struct {
-	ID          string
-	Label       string
-	Group       string
-	Description string
-	Tier        string
-	Slug        string // Yandex model slug, e.g. gpt-oss-120b/latest
-	UseResponses bool
+	ID            string
+	Label         string
+	Group         string
+	Description   string
+	Tier          string
+	Slug          string // Yandex model slug, e.g. gpt-oss-120b/latest
+	UseResponses  bool
+	UseOpenAIChat bool // OpenAI-compatible /v1/chat/completions only (e.g. DeepSeek)
+	SupportsImage bool // multimodal input in chat (image attachment)
 }
 
 // textModelCatalog is the canonical list of Yandex text models exposed to the app.
 var textModelCatalog = []textModelDef{
 	{
 		ID: "yandexgpt", Label: "YandexGPT", Group: "Yandex",
-		Description: "Русский язык: диалог, факты, пересказ и повседневные задачи",
+		Description: "Повседневные вопросы, письма и тексты на русском",
 		Tier: "standard", Slug: "yandexgpt/latest",
 	},
 	{
 		ID: "deepseek", Label: "DeepSeek V3.2", Group: "Yandex",
 		Description: "Код, отладка, алгоритмы и пошаговые рассуждения",
-		Tier: "pro", Slug: "deepseek-v32/latest",
+		Tier: "pro", Slug: "deepseek-v32", UseOpenAIChat: true,
 	},
 	{
 		ID: "gpt-oss-20b", Label: "GPT OSS 20B", Group: "Open-weight GPT",
@@ -47,7 +50,7 @@ var textModelCatalog = []textModelDef{
 	{
 		ID: "qwen3.6-35b", Label: "Qwen3.6 35B", Group: "Qwen",
 		Description: "Точные ответы, структура и работа с длинным контекстом",
-		Tier: "pro", Slug: "qwen3.6-35b-a3b/latest", UseResponses: true,
+		Tier: "pro", Slug: "qwen3.6-35b-a3b", UseOpenAIChat: true, SupportsImage: true,
 	},
 	{
 		ID: "qwen3-235b", Label: "Qwen3 235B", Group: "Qwen",
@@ -72,6 +75,7 @@ func ListTextModels() []TextModel {
 		out = append(out, TextModel{
 			ID: m.ID, Label: m.Label, Group: m.Group,
 			Description: m.Description, Tier: m.Tier, Provider: "yandex",
+			SupportsImage: m.SupportsImage,
 		})
 	}
 	return out
